@@ -1,0 +1,67 @@
+﻿@using CityMarketPOS.Models.ViewModels
+@model EditUserViewModel
+@{
+    ViewData["Title"] = "Edit Staff Account";
+}
+
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Edit Staff Account</h1>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="card card-info card-outline shadow">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-user-edit mr-2"></i> Update Employee Information</h3>
+                    </div>
+
+                    <form asp-action="EditUser" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        <div class="card-body">
+                            <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                            <div class="form-group">
+                                <label asp-for="FullName">Full Name</label>
+                                <input asp-for="FullName" class="form-control">
+                                <span asp-validation-for="FullName" class="text-danger small"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="UserName">Username</label>
+                                <input asp-for="UserName" class="form-control">
+                                <span asp-validation-for="UserName" class="text-danger small"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="Role">User Role</label>
+                                <select asp-for="Role" class="form-control custom-select">
+                                    <option value="Inventory">Inventory</option>
+                                    <option value="Cashier">Cashier</option>
+                                    <option value="Manager">Manager</option>
+                                </select>
+                                <span asp-validation-for="Role" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="card-footer bg-light d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-default"><i class="fas fa-arrow-left mr-1"></i> Cancel</a>
+                            <button type="submit" class="btn btn-info ml-auto"><i class="fas fa-save mr-1"></i> Update Account</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

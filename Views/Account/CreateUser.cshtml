@@ -1,0 +1,94 @@
+﻿@using CityMarketPOS.Models.ViewModels
+@model RegisterViewModel
+@{
+    ViewData["Title"] = "Create New User Account";
+}
+
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Create New User Account</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="#">Home</a></li>
+                    <li class="breadcrumb-item active">Create User</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="icon fas fa-check"></i> @TempData["Success"]
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                }
+
+                <div class="card card-primary card-outline shadow">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-user-plus mr-2"></i> Employee Information</h3>
+                    </div>
+
+                    <form asp-action="CreateUser" method="post" autocomplete="off">
+                        <div class="card-body">
+                            <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                            <div class="form-group">
+                                <label asp-for="FullName">Full Name</label>
+                                <input asp-for="FullName" class="form-control" placeholder="e.g. John Doe" autocomplete="off">
+                                <span asp-validation-for="FullName" class="text-danger small"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="UserName">Username</label>
+                                <input asp-for="UserName" class="form-control" placeholder="e.g. johndoe2026" autocomplete="off">
+                                <span asp-validation-for="UserName" class="text-danger small"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="Password">Password</label>
+                                <input asp-for="Password" type="password" class="form-control" placeholder="Min 6 characters (Must include uppercase, number, and special character)" autocomplete="new-password">
+                                <span asp-validation-for="Password" class="text-danger small"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="Role">User Role</label>
+                                <select asp-for="Role" class="form-control custom-select">
+                                    <option value="" disabled selected>-- Select Role --</option>
+                                    <option value="Inventory">Inventory</option>
+                                    <option value="Cashier">Cashier</option>
+                                </select>
+                                <span asp-validation-for="Role" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="card-footer bg-light d-flex justify-content-between">
+                            <a asp-action="Index" asp-controller="Home" class="btn btn-default">
+                                <i class="fas fa-arrow-left mr-1"></i> Back
+                            </a>
+                            <button type="submit" class="btn btn-primary ml-auto">
+                                <i class="fas fa-save mr-1"></i> Save Account
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

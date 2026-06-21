@@ -1,0 +1,58 @@
+﻿@model IEnumerable<CityMarketPOS.Models.Brand>
+@{
+    ViewData["Title"] = "Brands";
+}
+
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2"><div class="col-sm-6"><h1>Brand Management</h1></div></div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show">
+                <i class="fas fa-check"></i> @TempData["Success"]
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+            </div>
+        }
+        <div class="card card-primary card-outline shadow">
+            <div class="card-header d-flex align-items-center">
+                <h3 class="card-title"><i class="fas fa-copyright mr-2"></i> Product Brands</h3>
+                <a asp-action="Create" class="btn btn-primary btn-sm ml-auto"><i class="fas fa-plus"></i> Add Brand</a>
+            </div>
+            <div class="card-body p-0 table-responsive">
+                <table class="table table-hover table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th style="width: 150px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.Id</td>
+                                <td>@item.Name</td>
+                                <td>@item.Description</td>
+                                <td>
+                                    <div class="d-flex">
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-info btn-sm mr-2"><i class="fas fa-edit"></i> Edit</a>
+                                        <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Delete this brand?');">
+                                            <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Delete</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>

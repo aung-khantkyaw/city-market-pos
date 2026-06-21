@@ -1,0 +1,163 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - CityMarket POS</title>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+    <div class="wrapper">
+
+        <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+                </li>
+            </ul>
+
+            <ul class="navbar-nav ml-auto">
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <li class="nav-item">
+                        <form asp-action="Logout" asp-controller="Account" method="post" class="form-inline">
+                            <button type="submit" class="btn btn-link nav-link text-danger" style="border:none; background:none;">
+                                <i class="fas fa-sign-out-alt mr-1"></i> Log Out
+                            </button>
+                        </form>
+                    </li>
+                }
+            </ul>
+        </nav>
+
+        <aside class="main-sidebar sidebar-dark-primary elevation-4">
+            <a asp-action="Index" asp-controller="Home" class="brand-link">
+                <span class="brand-text font-weight-light pl-3"><b>CityMarket</b> POS</span>
+            </a>
+
+            <div class="sidebar">
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+                        <div class="image text-white pt-1 pl-3">
+                            <i class="fas fa-user-circle fa-2x"></i>
+                        </div>
+                        <div class="info">
+                            <a href="#" class="d-block">@User.Identity.Name</a>
+                            <span class="badge badge-success small">
+                                @(User.IsInRole("Manager") ? "Manager" : User.IsInRole("Inventory") ? "Inventory" : "Cashier")
+                            </span>
+                        </div>
+                    </div>
+                }
+
+                <nav class="mt-2">
+                    <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+
+                        <li class="nav-item">
+                            <a asp-action="Index" asp-controller="Home" class="nav-link active">
+                                <i class="nav-icon fas fa-tachometer-alt"></i>
+                                <p>Dashboard</p>
+                            </a>
+                        </li>
+
+                        @if (User.IsInRole("Manager") || User.IsInRole("Cashier"))
+                        {
+                            <li class="nav-header">SALES</li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="nav-icon fas fa-shopping-cart"></i>
+                                    <p>POS Terminal</p>
+                                </a>
+                            </li>
+                        }
+
+                        @if (User.IsInRole("Manager") || User.IsInRole("Inventory"))
+                        {
+                            <li class="nav-header">INVENTORY & PURCHASING</li>
+
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="nav-icon fas fa-th-list"></i>
+                                    <p>Catalog Setup<i class="right fas fa-angle-left"></i></p>
+                                </a>
+                                <ul class="nav nav-treeview">
+                                    <li class="nav-item"><a asp-action="Index" asp-controller="Category" class="nav-link"><i class="far fa-circle nav-icon"></i><p>Categories</p></a></li>
+                                    <li class="nav-item"><a asp-action="Index" asp-controller="Brand" class="nav-link"><i class="far fa-circle nav-icon"></i><p>Brands</p></a></li>
+                                    <li class="nav-item"><a asp-action="Index" asp-controller="UOM" class="nav-link"><i class="far fa-circle nav-icon"></i><p>Units (UOM)</p></a></li>
+                                </ul>
+                            </li>
+
+                            <li class="nav-item">
+                                <a asp-action="Index" asp-controller="Supplier" class="nav-link">
+                                    <i class="nav-icon fas fa-truck"></i>
+                                    <p>Suppliers</p>
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a asp-action="Index" asp-controller="Product" class="nav-link">
+                                    <i class="nav-icon fas fa-box"></i>
+                                    <p>Products</p>
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a asp-action="Index" asp-controller="PurchaseOrder" class="nav-link">
+                                    <i class="nav-icon fas fa-shopping-cart"></i>
+                                    <p>Purchase Orders</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a asp-action="Index" asp-controller="GRN" class="nav-link">
+                                    <i class="nav-icon fas fa-file-invoice"></i>
+                                    <p>GRN (Stock In)</p>
+                                </a>
+                            </li>
+                        }
+
+                        @if (User.IsInRole("Manager"))
+                        {
+                            <li class="nav-header">MANAGEMENT</li>
+                            <li class="nav-item">
+                                <a asp-action="Index" asp-controller="Account" class="nav-link">
+                                    <i class="nav-icon fas fa-users"></i>
+                                    <p>Manage Staff</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="nav-icon fas fa-chart-line"></i>
+                                    <p>Sales Reports</p>
+                                </a>
+                            </li>
+                        }
+
+                    </ul>
+                </nav>
+            </div>
+        </aside>
+
+        <div class="content-wrapper">
+            @RenderBody()
+        </div>
+
+        <footer class="main-footer text-sm">
+            <strong>Copyright &copy; 2026 <a href="#">CityMarket POS</a>.</strong>
+            All rights reserved.
+            <div class="float-right d-none d-sm-inline-block">
+                <b>Version</b> 1.0.0
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.1/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

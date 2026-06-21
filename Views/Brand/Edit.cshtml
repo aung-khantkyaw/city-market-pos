@@ -1,0 +1,21 @@
+﻿@model CityMarketPOS.Models.Brand
+@{
+    ViewData["Title"] = "Edit Brand";
+}
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card card-info shadow">
+                    <div class="card-header"><h3>Edit Brand</h3></div>
+                        <form asp-action="Edit" method="post">
+                            <input type="hidden" asp-for="Id" /><div class="card-body">
+                            <div class="form-group"><label asp-for="Name">Brand Name <span class="text-danger">*</span></label><input asp-for="Name" class="form-control" required /></div>
+                            <div class="form-group"><label asp-for="Description">Description</label><textarea asp-for="Description" class="form-control" rows="3"></textarea></div>
+                        </div><div class="card-footer d-flex justify-content-between"><a asp-action="Index" class="btn btn-default">Cancel</a><button type="submit" class="btn btn-info">Update Brand</button></div>
+                    </form>
+                </div>            
+            </div>
+        </div>
+    </div>
+</section>
