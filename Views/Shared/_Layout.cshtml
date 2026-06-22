@@ -77,20 +77,19 @@
 
                         @if (User.IsInRole("Manager") || User.IsInRole("Inventory"))
                         {
-                            <li class="nav-header">INVENTORY & PURCHASING</li>
-
+                            <li class="nav-header">Master Data Setup</li>
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="nav-icon fas fa-th-list"></i>
-                                    <p>Catalog Setup<i class="right fas fa-angle-left"></i></p>
+                                <a asp-action="Index" asp-controller="Category" class="nav-link">
+                                    <i class="fas fa-tags nav-icon"></i>
+                                    <p>Categories</p>
                                 </a>
-                                <ul class="nav nav-treeview">
-                                    <li class="nav-item"><a asp-action="Index" asp-controller="Category" class="nav-link"><i class="far fa-circle nav-icon"></i><p>Categories</p></a></li>
-                                    <li class="nav-item"><a asp-action="Index" asp-controller="Brand" class="nav-link"><i class="far fa-circle nav-icon"></i><p>Brands</p></a></li>
-                                    <li class="nav-item"><a asp-action="Index" asp-controller="UOM" class="nav-link"><i class="far fa-circle nav-icon"></i><p>Units (UOM)</p></a></li>
-                                </ul>
                             </li>
-
+                            <li class="nav-item">
+                                <a asp-action="Index" asp-controller="UOM" class="nav-link">
+                                    <i class="fas fa-balance-scale nav-icon"></i>
+                                    <p>Units (UOM)</p>
+                                </a>
+                            </li>
                             <li class="nav-item">
                                 <a asp-action="Index" asp-controller="Supplier" class="nav-link">
                                     <i class="nav-icon fas fa-truck"></i>
@@ -98,6 +97,9 @@
                                 </a>
                             </li>
 
+
+                            <li class="nav-header">INVENTORY & PURCHASING</li>
+                            
                             <li class="nav-item">
                                 <a asp-action="Index" asp-controller="Product" class="nav-link">
                                     <i class="nav-icon fas fa-box"></i>

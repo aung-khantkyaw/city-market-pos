@@ -16,20 +16,17 @@ namespace CityMarketPOS.Controllers
             _categoryRepo = categoryRepo;
         }
 
-        // 1. Read (List)
         public async Task<IActionResult> Index()
         {
             var categories = await _categoryRepo.GetAllAsync();
             return View(categories);
         }
 
-        // 2. Create (GET)
         public IActionResult Create()
         {
             return View();
         }
 
-        // 3. Create (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Category category)
@@ -44,16 +41,6 @@ namespace CityMarketPOS.Controllers
             return View(category);
         }
 
-        // 4. Edit (GET)
-        public async Task<IActionResult> Edit(int id)
-        {
-            var category = await _categoryRepo.GetByIdAsync(id);
-            if (category == null) return NotFound();
-
-            return View(category);
-        }
-
-        // 5. Edit (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Category category)
@@ -70,7 +57,6 @@ namespace CityMarketPOS.Controllers
             return View(category);
         }
 
-        // 6. Delete (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)

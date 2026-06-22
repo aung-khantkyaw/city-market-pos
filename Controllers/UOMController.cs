@@ -36,13 +36,6 @@ namespace CityMarketPOS.Controllers
             return View(uom);
         }
 
-        public async Task<IActionResult> Edit(int id)
-        {
-            var uom = await _uomRepo.GetByIdAsync(id);
-            if (uom == null) return NotFound();
-            return View(uom);
-        }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, UOM uom)

@@ -55,7 +55,6 @@
 </form>
 
 <script>
-    // Controller က ပို့လိုက်တဲ့ ViewBag.ProductList ကို JSON ပြောင်းယူခြင်း
     const products = @Html.Raw(Json.Serialize(ViewBag.ProductList ?? new List<object>()));
     let rowCount = 0;
 
@@ -65,7 +64,6 @@
 
         let tr = document.createElement("tr");
 
-        // C# object ရဲ့ စာလုံးအကြီးအသေး (Pascal/Camel case) ၂ မျိုးလုံးကို ခံရအောင် စစ်ပေးထားပါတယ်
         let options = products.map(p => {
             let id = p.id ?? p.Id;
             let name = p.name ?? p.Name;
@@ -91,7 +89,7 @@
         `;
 
         tbody.appendChild(tr);
-        rowCount++; // Index ကို မထပ်အောင် တိုးပေးခြင်း
+        rowCount++; 
         calculateTotal();
     }
 
@@ -104,7 +102,6 @@
         let row = selectElement.closest('tr');
         let selectedOption = selectElement.options[selectElement.selectedIndex];
 
-        // Fetch API ခေါ်စရာမလိုဘဲ data-price ထဲကနေ စျေးနှုန်းကို တန်းယူပါတယ် (ပိုမြန်ဆန်ပါတယ်)
         let price = selectedOption.getAttribute('data-price');
         let priceInput = row.querySelector('.price-input');
 
@@ -126,8 +123,6 @@
         document.getElementById('grandTotal').innerText = grandTotal.toFixed(2);
     }
 
-    // စာမျက်နှာ စပွင့်ပွင့်ချင်း Row တစ်ခု အလိုအလျောက် ပေါ်နေစေချင်ရင် အောက်က Line ကို ချန်ထားပါ
-    // မလိုချင်ရင်တော့ ဖျက်ပစ်နိုင်ပါတယ်
     document.addEventListener("DOMContentLoaded", function() {
         addRow();
     });

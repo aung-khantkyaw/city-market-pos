@@ -1,33 +1,84 @@
 ﻿using CityMarketPOS.Models;
 using CityMarketPOS.Repositories;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace CityMarketPOS.Controllers
 {
+    [Authorize(Roles = "Manager,Inventory")]
     public class GRNController : Controller
     {
         private readonly IGRNRepository _grnRepo;
-        private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public GRNController(IGRNRepository grnRepo, ApplicationDbContext context)
+        public GRNController(IGRNRepository grnRepo, UserManager<ApplicationUser> userManager)
         {
             _grnRepo = grnRepo;
-            _context = context;
+            _userManager = userManager;
         }
 
-        public IActionResult Create(int poId)
+        public async Task<IActionResult> Index()
         {
-            var po = _context.PurchaseOrders.Include(p => p.OrderDetails).ThenInclude(d => d.Product).FirstOrDefault(p => p.Id == poId);
+            return View(await _grnRepo.GetAllAsync());
+        }
+
+        public async Task<IActionResult> Details(int id)
+        {
+            var grn = await _grnRepo.GetByIdAsync(id);
+
+            if (grn == null)
+            {
+                return NotFound();
+            }
+
+            return View(grn);
+        }
+
+        public async Task<IActionResult> DetailsByPO(int poId)
+        {
+            var grn = await _grnRepo.GetByPurchaseOrderIdAsync(poId);
+            if (grn == null) return NotFound();
+
+            return RedirectToAction("Details", new { id = grn.Id });
+        }
+
+        public async Task<IActionResult> Create(int? poId) 
+        {
+            if (poId == null) return RedirectToAction("Index", "PurchaseOrder"); 
+
+            var po = await _grnRepo.GetPurchaseOrderWithDetailsAsync(poId.Value);
+            if (po == null) return NotFound();
+
             return View(po);
         }
 
         [HttpPost]
-        public async Task<IActionResult> ConfirmGRN(int poId, string remarks)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(int poId, List<int> ProductId, List<int> ReceivedQty, List<DateTime?> ExpiryDate, string Remarks)
         {
-            var grn = new GRN { PurchaseOrderId = poId, GRNNumber = "GRN-" + DateTime.Now.Ticks, Remarks = remarks };
-            await _grnRepo.CreateGRNAsync(grn, poId);
-            return RedirectToAction("Index", "PurchaseOrder");
+            string finalRemarks = string.IsNullOrWhiteSpace(Remarks) ? "-" : Remarks;
+
+            var po = await _grnRepo.GetPurchaseOrderWithDetailsAsync(poId);
+            if (po == null) return NotFound();
+
+            var user = await _userManager.GetUserAsync(User);
+            string userId = user?.Id ?? "System";
+
+            var grn = new GRN
+            {
+                GRNNumber = "GRN-" + DateTime.Now.ToString("yyMMddHHmm"),
+                PurchaseOrderId = poId,
+                Remarks = finalRemarks,
+                ReceivedByUserId = userId
+            };
+
+            await _grnRepo.ConfirmGRNAndUpdateStockAsync(grn, ProductId, ReceivedQty, ExpiryDate, po);
+
+            return RedirectToAction(nameof(Index));
         }
     }
 }

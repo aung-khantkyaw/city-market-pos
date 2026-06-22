@@ -20,10 +20,6 @@ namespace CityMarketPOS.Models
         [ForeignKey("CategoryId")]
         public Category? Category { get; set; }
 
-        public int BrandId { get; set; }
-        [ForeignKey("BrandId")]
-        public Brand? Brand { get; set; }
-
         public int UOMId { get; set; }
         [ForeignKey("UOMId")]
         public UOM? UOM { get; set; }
@@ -34,7 +30,13 @@ namespace CityMarketPOS.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal SellingPrice { get; set; }
 
-        public int StockQuantity { get; set; } // Will be updated by GRN
+        public int StoreQuantity { get; set; } = 0;
+        public int StockQuantity { get; set; } = 0;
+
+        [NotMapped]
+        public int TotalQuantity => StoreQuantity + StockQuantity;
+
+        public int MinStockLevel { get; set; } = 5;
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }

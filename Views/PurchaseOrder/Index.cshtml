@@ -28,6 +28,7 @@
                             <th>Supplier</th>
                             <th>Date</th>
                             <th>Total Amount</th>
+                            <th>status</th>
                             <th class="text-center">Actions</th>
                         </tr>
                     </thead>
@@ -41,10 +42,42 @@
                                     <td class="font-weight-bold">@(item.Supplier?.Name ?? "N/A")</td>
                                     <td class="text-muted">@item.OrderDate.ToString("dd-MM-yyyy")</td>
                                     <td class="text-success font-weight-bold">@item.TotalAmount.ToString("N2")</td>
+                                    <td>
+                                        @if (item.Status == "Pending")
+                                        {
+                                            <span class="badge badge-warning px-3 py-2 text-dark rounded-pill" style="font-size: 0.9rem;">
+                                                <i class="fas fa-clock"></i> @item.Status
+                                            </span>
+                                        }
+                                        else if (item.Status == "Received")
+                                        {
+                                            <span class="badge badge-success px-3 py-2 rounded-pill" style="font-size: 0.9rem;">
+                                                <i class="fas fa-check-circle"></i> @item.Status
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-secondary px-3 py-2 rounded-pill" style="font-size: 0.9rem;">
+                                                @item.Status
+                                            </span>
+                                        }
+                                    </td>
                                     <td class="text-center">
                                         <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info">
                                             <i class="fas fa-eye"></i> View
                                         </a>
+                                        @if (item.Status == "Pending")
+                                        {
+                                            <a asp-controller="GRN" asp-action="Create" asp-route-poId="@item.Id" class="btn btn-sm btn-success">
+                                                <i class="fas fa-truck-loading"></i> Receive Goods
+                                            </a>
+                                        }
+                                        else if (item.Status == "Received")
+                                        {
+                                        <a asp-controller="GRN" asp-action="DetailsByPO" asp-route-poId="@item.Id" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-file-alt"></i> GRN Details
+                                        </a>
+                                        }
                                     </td>
                                 </tr>
                             }

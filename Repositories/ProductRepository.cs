@@ -10,7 +10,7 @@ namespace CityMarketPOS.Repositories
         public ProductRepository(ApplicationDbContext context) => _context = context;
 
         public async Task<IEnumerable<Product>> GetAllAsync() =>
-            await _context.Products.Include(p => p.Category).Include(p => p.Brand).Include(p => p.UOM).ToListAsync();
+            await _context.Products.Include(p => p.Category).Include(p => p.UOM).ToListAsync();
 
         public async Task<Product> GetByIdAsync(int id) => await _context.Products.FindAsync(id);
 

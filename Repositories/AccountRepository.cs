@@ -96,7 +96,6 @@ public class AccountRepository : IAccountRepository
         var result = await _userManager.UpdateAsync(user);
         if (result.Succeeded)
         {
-            // ရာထူး (Role) ပြောင်းလဲခြင်း Logic
             var currentRoles = await _userManager.GetRolesAsync(user);
             await _userManager.RemoveFromRolesAsync(user, currentRoles);
             await _userManager.AddToRoleAsync(user, model.Role);

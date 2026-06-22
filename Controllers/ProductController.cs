@@ -24,7 +24,6 @@ namespace CityMarketPOS.Controllers
         public IActionResult Create()
         {
             ViewBag.Categories = new SelectList(_context.Categories, "Id", "Name");
-            ViewBag.Brands = new SelectList(_context.Brands, "Id", "Name");
             ViewBag.UOMs = new SelectList(_context.UOMs, "Id", "Name");
             ViewBag.GeneratedBarcode = _prodRepo.GenerateBarcode();
             return View();
@@ -37,7 +36,6 @@ namespace CityMarketPOS.Controllers
             product.Barcode = _prodRepo.GenerateBarcode();
 
             ModelState.Remove("Category");
-            ModelState.Remove("Brand");
             ModelState.Remove("UOM");
 
             if (ModelState.IsValid)
@@ -48,7 +46,6 @@ namespace CityMarketPOS.Controllers
             }
 
             ViewBag.Categories = new SelectList(_context.Categories, "Id", "Name");
-            ViewBag.Brands = new SelectList(_context.Brands, "Id", "Name");
             ViewBag.UOMs = new SelectList(_context.UOMs, "Id", "Name");
             return View(product);
         }
@@ -58,7 +55,6 @@ namespace CityMarketPOS.Controllers
             var product = await _prodRepo.GetByIdAsync(id);
             if (product == null) return NotFound();
             ViewBag.Categories = new SelectList(_context.Categories, "Id", "Name", product.CategoryId);
-            ViewBag.Brands = new SelectList(_context.Brands, "Id", "Name", product.BrandId);
             ViewBag.UOMs = new SelectList(_context.UOMs, "Id", "Name", product.UOMId);
             return View(product);
         }
@@ -85,7 +81,6 @@ namespace CityMarketPOS.Controllers
             }
 
             ViewBag.Categories = new SelectList(_context.Categories, "Id", "Name", product.CategoryId);
-            ViewBag.Brands = new SelectList(_context.Brands, "Id", "Name", product.BrandId);
             ViewBag.UOMs = new SelectList(_context.UOMs, "Id", "Name", product.UOMId);
             return View(product);
         }

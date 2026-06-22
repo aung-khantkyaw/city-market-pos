@@ -1,0 +1,47 @@
+﻿@model CityMarketPOS.Models.GRN
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title">GRN Details: <strong>@Model.GRNNumber</strong></h3>
+                <a asp-action="Index" class="btn btn-sm btn-light float-right">Back to List</a>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-sm-4">
+                        <h5>Order Info</h5>
+                        <p>
+                            PO Number: <strong>@Model.PurchaseOrder.PONumber</strong><br>
+                            Received Date: @Model.ReceivedDate.ToString("dd MMM yyyy")
+                        </p>
+                    </div>
+                    <div class="col-sm-4">
+                        <h5>Remarks</h5>
+                        <p>@Model.Remarks</p>
+                    </div>
+                </div>
+
+                <table class="table table-bordered">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Product</th>
+                            <th>Received Qty</th>
+                            <th>Expiry Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var detail in Model.GRNDetails)
+                        {
+                            <tr>
+                                <td>@detail.Product.Name</td>
+                                <td>@detail.ReceivedQuantity</td>
+                                <td>@(detail.ExpiryDate?.ToString("dd MMM yyyy") ?? "N/A")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>

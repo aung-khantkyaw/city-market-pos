@@ -1,0 +1,41 @@
+﻿@model CityMarketPOS.Models.PurchaseOrder
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="card card-success shadow">
+            <div class="card-header"><h3 class="card-title">Goods Received Note (PO: @Model.PONumber)</h3></div>
+            <form asp-action="Create" method="post">
+                <input type="hidden" name="poId" value="@Model.Id" />
+                <div class="card-body p-0 table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead class="bg-light">
+                            <tr><th>Product Name</th><th>Ordered Qty</th><th width="150px">Received Qty</th><th width="200px">Expiry Date</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.OrderDetails)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@item.Product.Name</strong>
+                                        <input type="hidden" name="ProductId" value="@item.ProductId" />
+                                    </td>
+                                    <td class="text-center"><span class="badge badge-info">@item.Quantity</span></td>
+                                    <td>
+                                        <input type="number" name="ReceivedQty" class="form-control" value="@item.Quantity" min="0" required />
+                                    </td>
+                                    <td>
+                                        <input type="date" name="ExpiryDate" class="form-control" />
+                                        <small class="text-muted">Leave blank if no expiry</small>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer d-flex justify-content-between">
+                    <input type="text" name="Remarks" class="form-control w-50" placeholder="Notes / Remarks..." />
+                    <button type="submit" class="btn btn-success"><i class="fas fa-check"></i> Confirm GRN & Update Stock</button>
+                </div>
+            </form>
+        </div>    </div>
+    </section>

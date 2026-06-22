@@ -4,15 +4,25 @@
 }
 
 <section class="content-header">
-    <div class="container-fluid"><div class="row mb-2"><div class="col-sm-6"><h1>Unit of Measurement (UOM)</h1></div></div></div>
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Unit of Measurement (UOM)</h1>
+            </div>
+        </div>
+    </div>
 </section>
 
 <section class="content">
     <div class="container-fluid">
         @if (TempData["Success"] != null)
         {
-            <div class="alert alert-success alert-dismissible fade show"><i class="fas fa-check"></i> @TempData["Success"]<button type="button" class="close" data-dismiss="alert">&times;</button></div>
+            <div class="alert alert-success alert-dismissible fade show">
+                <i class="fas fa-check"></i> @TempData["Success"]
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+            </div>
         }
+
         <div class="card card-primary card-outline shadow">
             <div class="card-header d-flex align-items-center">
                 <h3 class="card-title"><i class="fas fa-balance-scale mr-2"></i> UOM List</h3>
@@ -37,7 +47,16 @@
                                 <td><span class="badge badge-secondary">@item.ShortName</span></td>
                                 <td>
                                     <div class="d-flex">
-                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-info btn-sm mr-2"><i class="fas fa-edit"></i> Edit</a>
+                                        <button type="button"
+                                                class="btn btn-info btn-sm mr-2 edit-uom-btn"
+                                                data-toggle="modal"
+                                                data-target="#editUomModal"
+                                                data-id="@item.Id"
+                                                data-name="@item.Name"
+                                                data-shortname="@item.ShortName">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+
                                         <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Delete this UOM?');">
                                             <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Delete</button>
                                         </form>
@@ -51,3 +70,71 @@
         </div>
     </div>
 </section>
+
+<div class="modal fade" id="editUomModal" tabindex="-1" role="dialog" aria-labelledby="editUomModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="editUomModalLabel"><i class="fas fa-edit mr-2"></i> Edit UOM</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="editUomForm" method="post">
+                <div class="modal-body">
+                    <input type="hidden" id="modalUomId" name="Id" />
+
+                    <div class="form-group">
+                        <label for="modalUomName">Unit Name</label>
+                        <input type="text" id="modalUomName" name="Name" class="form-control" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="modalUomShortName">Short Name</label>
+                        <input type="text" id="modalUomShortName" name="ShortName" class="form-control" required />
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="submit" id="btnUpdate" class="btn btn-info" disabled>Update UOM</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            $('.edit-uom-btn').on('click', function () {
+                var id = $(this).data('id');
+                var name = $(this).data('name');
+                var shortName = $(this).data('shortname');
+
+                $('#modalUomId').val(id);
+                $('#modalUomName').val(name);
+                $('#modalUomShortName').val(shortName);
+
+                $('#editUomForm').attr('action', '/UOM/Edit/' + id);
+
+                validateForm();
+            });
+
+            $('#modalUomName, #modalUomShortName').on('input', function () {
+                validateForm();
+            });
+
+            function validateForm() {
+                var name = $('#modalUomName').val().trim();
+                var shortName = $('#modalUomShortName').val().trim();
+
+                if (name !== "" && shortName !== "") {
+                    $('#btnUpdate').removeAttr('disabled'); 
+                } else {
+                    $('#btnUpdate').attr('disabled', 'disabled'); 
+                }
+            }
+        });
+    </script>
+}
