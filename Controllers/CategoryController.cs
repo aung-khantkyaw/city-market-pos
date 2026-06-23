@@ -22,23 +22,25 @@ namespace CityMarketPOS.Controllers
             return View(categories);
         }
 
-        public IActionResult Create()
-        {
-            return View();
-        }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Category category)
         {
             if (ModelState.IsValid)
             {
+                if (!await _categoryRepo.IsShortNameUniqueAsync(category.ShortName))
+                {
+                    TempData["Error"] = "Category Short Name already exists!";
+                    return RedirectToAction(nameof(Index));
+                }
+
                 await _categoryRepo.AddAsync(category);
                 await _categoryRepo.SaveChangesAsync();
                 TempData["Success"] = "Category created successfully!";
                 return RedirectToAction(nameof(Index));
             }
-            return View(category);
+            TempData["Error"] = "Invalid data submitted!";
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
@@ -49,12 +51,19 @@ namespace CityMarketPOS.Controllers
 
             if (ModelState.IsValid)
             {
+                if (!await _categoryRepo.IsShortNameUniqueAsync(category.ShortName, category.Id))
+                {
+                    TempData["Error"] = "Category Short Name already exists!";
+                    return RedirectToAction(nameof(Index));
+                }
+
                 _categoryRepo.Update(category);
                 await _categoryRepo.SaveChangesAsync();
                 TempData["Success"] = "Category updated successfully!";
                 return RedirectToAction(nameof(Index));
             }
-            return View(category);
+            TempData["Error"] = "Invalid data submitted!";
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]

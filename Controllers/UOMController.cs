@@ -19,8 +19,7 @@ namespace CityMarketPOS.Controllers
         {
             return View(await _uomRepo.GetAllAsync());
         }
-
-        public IActionResult Create() => View();
+        
 
         [HttpPost]
         [ValidateAntiForgeryToken]

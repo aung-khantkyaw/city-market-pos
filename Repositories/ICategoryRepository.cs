@@ -12,5 +12,6 @@ namespace CityMarketPOS.Repositories
         void Update(Category category);
         void Delete(Category category);
         Task<bool> SaveChangesAsync();
+        Task<bool> IsShortNameUniqueAsync(string shortName, int excludeId = 0);
     }
 }

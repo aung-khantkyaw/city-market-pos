@@ -25,5 +25,10 @@ namespace CityMarketPOS.Repositories
         public void Delete(Category category) => _context.Categories.Remove(category);
 
         public async Task<bool> SaveChangesAsync() => (await _context.SaveChangesAsync()) > 0;
+
+        public async Task<bool> IsShortNameUniqueAsync(string shortName, int excludeId = 0)
+        {
+            return !await _context.Categories.AnyAsync(c => c.ShortName == shortName && c.Id != excludeId);
+        }
     }
 }
