@@ -4,35 +4,46 @@
 }
 
 <section class="content-header">
-    <div class="container-fluid"><div class="row mb-2"><div class="col-sm-6"><h1>Product Management</h1></div></div></div>
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Product Management</h1>
+            </div>
+        </div>
+    </div>
 </section>
 
 <section class="content">
     <div class="container-fluid">
-        @if (TempData["Success"] != null)
-        {
-            <div class="alert alert-success alert-dismissible fade show"><i class="fas fa-check"></i> @TempData["Success"]<button type="button" class="close" data-dismiss="alert">&times;</button></div>
-        }
         <div class="card card-primary card-outline shadow">
             <div class="card-header d-flex align-items-center">
                 <h3 class="card-title"><i class="fas fa-box mr-2"></i> Product List</h3>
-                <a asp-action="Create" class="btn btn-primary btn-sm ml-auto"><i class="fas fa-plus"></i> Add Product</a>
+                <button type="button" class="btn btn-primary btn-sm ml-auto" onclick="openCreateModal()">
+                    <i class="fas fa-plus"></i> Add Product
+                </button>
             </div>
             <div class="card-body p-0">
                 <table class="table table-striped">
-                    <thead><tr><th>Barcode</th><th>Name</th><th>Purchase Price</th><th>Selling Price</th><th>UOM</th><th>Category</th><th>Action</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>UOM</th>
+                            <th>Reorder Count</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
                     <tbody>
                         @foreach (var item in Model)
                         {
                             <tr>
-                                <td><code>@item.Barcode</code></td>
                                 <td>@item.Name</td>
-                                <td>@item.PurchasePrice.ToString("N2")</td>
-                                <td>@item.SellingPrice.ToString("N2")</td>
-                                <td>@item.UOM.ShortName</td>
-                                <td>@item.Category.Name</td>
+                                <td>@item.Category?.Name</td>
+                                <td>@item.UOM?.Name</td>
+                                <td>@item.MinStockLevel</td>
                                 <td>
-                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-info btn-sm">Edit</a>
+                                    <button type="button" class="btn btn-info btn-sm" onclick="openEditModal(@item.Id)">Edit</button>
+
                                     <form asp-action="Delete" asp-route-id="@item.Id" style="display:inline" onsubmit="return confirm('Confirm Delete?')">
                                         <button class="btn btn-danger btn-sm">Delete</button>
                                     </form>
@@ -42,5 +53,45 @@
                     </tbody>
                 </table>
             </div>
-        </div>    </div>
-    </section>
+        </div>
+    </div>
+</section>
+
+<div class="modal fade" id="productModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content" id="modalContent">
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        @if (TempData["Success"] != null)
+        {
+                    <text>
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Successful',
+                                text: '@TempData["Success"]',
+                                timer: 3000,
+                                showConfirmButton: false
+                            });
+                    </text>
+        }
+
+        function openCreateModal() {
+            $.get('@Url.Action("Create", "Product")', function (data) {
+                $('#modalContent').html(data);
+                $('#productModal').modal('show');
+            });
+        }
+
+        // Edit Pop-up ခေါ်ယူခြင်း
+        function openEditModal(id) {
+            $.get('@Url.Action("Edit", "Product")/' + id, function (data) {
+                $('#modalContent').html(data);
+                $('#productModal').modal('show');
+            });
+        }
+    </script>
+}

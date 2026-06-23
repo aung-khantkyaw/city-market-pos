@@ -1,0 +1,50 @@
+﻿@model CityMarketPOS.Models.Supplier
+
+<div class="modal-header bg-info text-white">
+    <h5 class="modal-title"><i class="fas fa-edit mr-2"></i> Edit Supplier</h5>
+    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+<form asp-action="Edit" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+
+    <div class="modal-body">
+        <div class="row">
+            <div class="col-md-6 form-group">
+                <label asp-for="Name">Company/Supplier Name <span class="text-danger">*</span></label>
+                <input asp-for="Name" class="form-control" required />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="col-md-6 form-group">
+                <label asp-for="ContactPerson">Contact Person</label>
+                <input asp-for="ContactPerson" class="form-control" />
+            </div>
+            <div class="col-md-6 form-group">
+                <label asp-for="Phone">Phone</label>
+                <input asp-for="Phone" class="form-control" />
+            </div>
+            <div class="col-md-6 form-group">
+                <label asp-for="Email">Email</label>
+                <input asp-for="Email" type="email" class="form-control" />
+            </div>
+            <div class="col-md-12 form-group">
+                <label asp-for="Address">Address</label>
+                <textarea asp-for="Address" class="form-control" rows="2"></textarea>
+            </div>
+
+            <div class="col-md-12 form-group">
+                <label class="font-weight-bold text-info">Supply Products (Select Multiple)</label>
+                <select name="selectedProductIds" class="form-control" asp-items="ViewBag.Products" multiple="multiple" style="height: 120px;">
+                </select>
+                <small class="form-text text-muted">Windows တွင် Ctrl ကိုဖိပြီး Product များကို တိုး/လျှော့ ရွေးချယ်နိုင်ပါသည်။</small>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-info">Update Changes</button>
+    </div>
+</form>

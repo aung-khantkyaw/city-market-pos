@@ -13,14 +13,6 @@
 
 <section class="content">
     <div class="container-fluid">
-        @if (TempData["Success"] != null)
-        {
-            <div class="alert alert-success alert-dismissible fade show">
-                <i class="fas fa-check"></i> @TempData["Success"]
-                <button type="button" class="close" data-dismiss="alert">&times;</button>
-            </div>
-        }
-
         <div class="card card-primary card-outline shadow">
             <div class="card-header d-flex align-items-center">
                 <h3 class="card-title"><i class="fas fa-list mr-2"></i> Product Categories</h3>
@@ -107,6 +99,19 @@
 
 @section Scripts {
     <script>
+        @if (TempData["Success"] != null)
+        {
+                 <text>
+                         Swal.fire({
+                            icon: 'success',
+                            title: 'Successful',
+                            text: '@TempData["Success"]',
+                            timer: 3000,
+                            showConfirmButton: false
+                         });
+                 </text>
+        }
+
         $(document).ready(function () {
 
             $('.edit-category-btn').on('click', function () {

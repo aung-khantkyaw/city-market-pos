@@ -4,19 +4,24 @@
 }
 
 <section class="content-header">
-    <div class="container-fluid"><div class="row mb-2"><div class="col-sm-6"><h1>Supplier Management</h1></div></div></div>
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Supplier Management</h1>
+            </div>
+        </div>
+    </div>
 </section>
 
 <section class="content">
     <div class="container-fluid">
-        @if (TempData["Success"] != null)
-        {
-            <div class="alert alert-success alert-dismissible fade show"><i class="fas fa-check"></i> @TempData["Success"]<button type="button" class="close" data-dismiss="alert">&times;</button></div>
-        }
+
         <div class="card card-primary card-outline shadow">
             <div class="card-header d-flex align-items-center">
                 <h3 class="card-title"><i class="fas fa-truck mr-2"></i> Supplier List</h3>
-                <a asp-action="Create" class="btn btn-primary btn-sm ml-auto"><i class="fas fa-plus"></i> Add Supplier</a>
+                <button type="button" class="btn btn-primary btn-sm ml-auto" onclick="openCreateModal()">
+                    <i class="fas fa-plus"></i> Add Supplier
+                </button>
             </div>
             <div class="card-body p-0 table-responsive">
                 <table class="table table-hover table-striped">
@@ -26,7 +31,7 @@
                             <th>Contact Person</th>
                             <th>Phone</th>
                             <th>Email</th>
-                            <th>Address</th>
+                            <th>Supplied Products</th>
                             <th style="width: 150px;">Actions</th>
                         </tr>
                     </thead>
@@ -38,10 +43,24 @@
                                 <td>@item.ContactPerson</td>
                                 <td>@item.Phone</td>
                                 <td>@item.Email</td>
-                                <td>@item.Address</td>
+                                <td>
+                                    @if (item.Products != null && item.Products.Any())
+                                    {
+                                        @foreach (var prod in item.Products)
+                                        {
+                                            <span class="badge badge-info mr-1">@prod.Name</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">No products assigned</span>
+                                    }
+                                </td>
                                 <td>
                                     <div class="d-flex">
-                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-info btn-sm mr-2"><i class="fas fa-edit"></i> Edit</a>
+                                        <button type="button" class="btn btn-info btn-sm mr-2" onclick="openEditModal(@item.Id)">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
                                         <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Delete this supplier?');">
                                             <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Delete</button>
                                         </form>
@@ -55,3 +74,41 @@
         </div>
     </div>
 </section>
+
+<div class="modal fade" id="supplierModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content" id="modalContent">
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        @if (TempData["Success"] != null)
+        {
+                <text>
+                    Swal.fire({
+                        icon: 'success',
+                                title: @TempData["Success"],
+                        text: '@TempData["Success"]',
+                        timer: 3000, // ၃ စက္ကန့်ပြပြီး အလိုအလျောက် ပိတ်သွားမယ်
+                        showConfirmButton: false
+                    });
+                </text>
+        }
+
+        function openCreateModal() {
+            $.get('@Url.Action("Create", "Supplier")', function (data) {
+                $('#modalContent').html(data);
+                $('#supplierModal').modal('show');
+            });
+        }
+
+        function openEditModal(id) {
+            $.get('@Url.Action("Edit", "Supplier")/' + id, function (data) {
+                $('#modalContent').html(data);
+                $('#supplierModal').modal('show');
+            });
+        }
+    </script>
+}

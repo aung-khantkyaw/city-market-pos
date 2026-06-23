@@ -1,5 +1,7 @@
 ﻿using CityMarketPOS.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace CityMarketPOS.Repositories
 {
@@ -12,9 +14,11 @@ namespace CityMarketPOS.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<Supplier>> GetAllAsync() => await _context.Suppliers.ToListAsync();
+        public async Task<IEnumerable<Supplier>> GetAllAsync() =>
+            await _context.Suppliers.Include(s => s.Products).ToListAsync();
 
-        public async Task<Supplier> GetByIdAsync(int id) => await _context.Suppliers.FindAsync(id);
+        public async Task<Supplier> GetByIdAsync(int id) =>
+            await _context.Suppliers.Include(s => s.Products).FirstOrDefaultAsync(s => s.Id == id);
 
         public async Task AddAsync(Supplier supplier) => await _context.Suppliers.AddAsync(supplier);
 

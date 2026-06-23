@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace CityMarketPOS.Models
 {
@@ -14,5 +15,7 @@ namespace CityMarketPOS.Models
         public string Phone { get; set; }
         public string Email { get; set; }
         public string Address { get; set; }
+
+        public virtual ICollection<Product> Products { get; set; } = new List<Product>();
     }
 }
