@@ -68,15 +68,15 @@
     <script>
         @if (TempData["Success"] != null)
         {
-                    <text>
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Successful',
-                                text: '@TempData["Success"]',
-                                timer: 3000,
-                                showConfirmButton: false
-                            });
-                    </text>
+             <text>
+                 Swal.fire({
+                    icon: 'success',
+                    title: 'Successful',
+                    text: '@TempData["Success"]',
+                    timer: 3000,
+                    showConfirmButton: false
+                 });
+             </text>
         }
 
         function openCreateModal() {
@@ -86,7 +86,6 @@
             });
         }
 
-        // Edit Pop-up ခေါ်ယူခြင်း
         function openEditModal(id) {
             $.get('@Url.Action("Edit", "Product")/' + id, function (data) {
                 $('#modalContent').html(data);

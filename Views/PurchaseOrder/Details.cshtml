@@ -23,7 +23,6 @@
 <section class="content">
     <div class="container-fluid">
         <div class="card shadow-sm border-0 rounded-lg">
-
             <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
                 <h4 class="mb-0 font-weight-bold text-dark">
                     PO Number: <span class="text-primary">@Model.PONumber</span>
@@ -76,11 +75,9 @@
                     <table class="table table-bordered table-hover align-middle">
                         <thead class="bg-light">
                             <tr>
-                                <th style="width: 5%">#</th>
-                                <th style="width: 45%">Product Name</th>
-                                <th class="text-center" style="width: 15%">Qty</th>
-                                <th class="text-right" style="width: 15%">Unit Price</th>
-                                <th class="text-right" style="width: 20%">Total Price</th>
+                                <th style="width: 10%">#</th>
+                                <th style="width: 65%">Product Name</th>
+                                <th class="text-center" style="width: 25%">Ordered Qty</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -92,24 +89,12 @@
                                 <tr>
                                     <td>@serialNo</td>
                                     <td class="font-weight-bold text-dark">@(detail.Product?.Name ?? "Unknown Product")</td>
-                                    <td class="text-center">@detail.Quantity</td>
-                                    <td class="text-right">@detail.UnitPrice.ToString("N2")</td>
-                                    <td class="text-right font-weight-bold text-secondary">@detail.TotalPrice.ToString("N2")</td>
+                                    <td class="text-center font-weight-bold text-primary">@detail.Quantity</td>
                                 </tr>
                                 serialNo++;
                             }
                         </tbody>
                     </table>
-                </div>
-
-                <div class="row justify-content-end mt-3">
-                    <div class="col-md-4 text-right">
-                        <div class="p-3 bg-light rounded">
-                            <h4 class="mb-0 font-weight-bold text-success">
-                                Grand Total: <span>@Model.TotalAmount.ToString("N2")</span>
-                            </h4>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -117,9 +102,7 @@
                 <button type="button" class="btn btn-primary" onclick="window.print();">
                     <i class="fas fa-print"></i> Print PO
                 </button>
-                <a asp-action="Index" class="btn btn-secondary float-right">
-                    Close
-                </a>
+                <a asp-action="Index" class="btn btn-secondary float-right">Close</a>
             </div>
         </div>
     </div>
