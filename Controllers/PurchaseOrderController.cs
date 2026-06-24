@@ -28,6 +28,18 @@ namespace CityMarketPOS.Controllers
             return View(pos);
         }
 
+
+        [HttpGet]
+        public IActionResult GetProductsBySupplier(int supplierId)
+        {
+            var products = _context.Products
+                .Where(p => p.Suppliers.Any(s => s.Id == supplierId)) 
+                .Select(p => new { value = p.Id, text = p.Name })
+                .ToList();
+
+            return Json(products);
+        }
+
         public IActionResult Create()
         {
             var model = new PurchaseOrderCreateViewModel
@@ -35,30 +47,20 @@ namespace CityMarketPOS.Controllers
                 PONumber = "PO-" + DateTime.Now.ToString("yyyyMMddHHmmss")
             };
 
+            ViewBag.SupplierList = new SelectList(_context.Suppliers, "Id", "Name");
             ViewBag.ProductList = new SelectList(_context.Products, "Id", "Name");
 
             return PartialView("_CreatePartial", model);
-        }
-
-        [HttpGet]
-        public IActionResult GetSuppliersByProduct(int productId)
-        {
-            var suppliers = _context.Suppliers
-                .Where(s => s.Products.Any(p => p.Id == productId))
-                .Select(s => new { value = s.Id, text = s.Name })
-                .ToList();
-
-            return Json(suppliers);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(PurchaseOrderCreateViewModel model)
         {
-            if (!ModelState.IsValid)
+            if (!ModelState.IsValid || model.Items == null || model.Items.Count == 0)
             {
-                ViewBag.ProductList = new SelectList(_context.Products, "Id", "Name", model.ProductId);
-                return View(model);
+                TempData["Error"] = "Please add at least one product with correct quantity.";
+                return RedirectToAction(nameof(Index));
             }
 
             var po = new PurchaseOrder
@@ -67,22 +69,20 @@ namespace CityMarketPOS.Controllers
                 SupplierId = model.SupplierId,
                 Status = "Pending",
                 OrderDate = DateTime.Now,
-                ExpectedDate = DateTime.Now.AddDays(7), 
-                TotalAmount = 0 
+                ExpectedDate = DateTime.Now.AddDays(7),
+                TotalAmount = 0
             };
 
-            po.OrderDetails = new List<PurchaseOrderDetail>
+            po.OrderDetails = model.Items.Select(item => new PurchaseOrderDetail
             {
-                new PurchaseOrderDetail
-                {
-                    ProductId = model.ProductId,
-                    Quantity = model.Quantity,
-                }
-            };
+                ProductId = item.ProductId,
+                Quantity = item.Quantity
+            }).ToList();
 
             await _poRepo.AddAsync(po);
             await _poRepo.SaveChangesAsync();
 
+            TempData["Success"] = "Purchase Order created successfully!";
             return RedirectToAction(nameof(Index));
         }
 
