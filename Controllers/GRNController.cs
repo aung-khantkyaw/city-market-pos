@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace CityMarketPOS.Controllers
@@ -29,29 +30,36 @@ namespace CityMarketPOS.Controllers
         public async Task<IActionResult> Details(int id)
         {
             var grn = await _grnRepo.GetByIdAsync(id);
-
-            if (grn == null)
-            {
-                return NotFound();
-            }
-
+            if (grn == null) return NotFound();
             return View(grn);
         }
 
         public async Task<IActionResult> DetailsByPO(int poId)
         {
-            var grn = await _grnRepo.GetByPurchaseOrderIdAsync(poId);
-            if (grn == null) return NotFound();
+            var grns = await _grnRepo.GetByPurchaseOrderIdAsync(poId);
 
-            return RedirectToAction("Details", new { id = grn.Id });
+            if (grns == null || !grns.Any())
+                return NotFound("No GRN found for this PO.");
+
+            if (grns.Count() == 1)
+            {
+                return RedirectToAction("Details", new { id = grns.First().Id });
+            }
+
+            ViewBag.PageTitle = "GRN History For " + grns.First().PurchaseOrder?.PONumber;
+
+            return View("Index", grns);
         }
 
-        public async Task<IActionResult> Create(int? poId) 
+        public async Task<IActionResult> Create(int? poId)
         {
-            if (poId == null) return RedirectToAction("Index", "PurchaseOrder"); 
+            if (poId == null) return RedirectToAction("Index", "PurchaseOrder");
 
             var po = await _grnRepo.GetPurchaseOrderWithDetailsAsync(poId.Value);
             if (po == null) return NotFound();
+
+            var receivedQtys = await _grnRepo.GetReceivedQuantitiesByPOAsync(poId.Value);
+            ViewBag.ReceivedQuantities = receivedQtys;
 
             return View(po);
         }

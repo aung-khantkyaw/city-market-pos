@@ -1,4 +1,6 @@
 ﻿using CityMarketPOS.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace CityMarketPOS.Repositories
 {
@@ -6,10 +8,12 @@ namespace CityMarketPOS.Repositories
     {
         Task<IEnumerable<GRN>> GetAllAsync();
         Task<GRN> GetByIdAsync(int id);
-        Task<GRN> GetByPurchaseOrderIdAsync(int poId);
+        Task<IEnumerable<GRN>> GetByPurchaseOrderIdAsync(int poId);
+
         Task<PurchaseOrder> GetPurchaseOrderWithDetailsAsync(int poId);
         Task ConfirmGRNAndUpdateStockAsync(GRN grn, List<int> productIds, List<int> receivedQtys, List<DateTime?> expiryDates, PurchaseOrder po);
         Task<IEnumerable<Product>> GetLowStockProductsAsync();
         Task<IEnumerable<GRNDetail>> GetExpiringItemsAsync(int daysThreshold);
+        Task<Dictionary<int, int>> GetReceivedQuantitiesByPOAsync(int poId);
     }
 }

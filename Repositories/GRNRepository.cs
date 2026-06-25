@@ -16,8 +16,8 @@ namespace CityMarketPOS.Repositories
         public async Task<IEnumerable<GRN>> GetAllAsync()
         {
             return await _context.GRNs
-                .Include(g => g.PurchaseOrder)   
-                .Include(g => g.GRNDetails)      
+                .Include(g => g.PurchaseOrder)
+                .Include(g => g.GRNDetails)
                 .OrderByDescending(g => g.ReceivedDate)
                 .ToListAsync();
         }
@@ -31,10 +31,14 @@ namespace CityMarketPOS.Repositories
                 .FirstOrDefaultAsync(m => m.Id == id);
         }
 
-        public async Task<GRN> GetByPurchaseOrderIdAsync(int poId)
+        public async Task<IEnumerable<GRN>> GetByPurchaseOrderIdAsync(int poId)
         {
             return await _context.GRNs
-                .FirstOrDefaultAsync(g => g.PurchaseOrderId == poId);
+                .Include(g => g.PurchaseOrder)    
+                .Include(g => g.GRNDetails)      
+                .Where(g => g.PurchaseOrderId == poId)
+                .OrderByDescending(g => g.ReceivedDate)
+                .ToListAsync();
         }
 
         public async Task<PurchaseOrder> GetPurchaseOrderWithDetailsAsync(int poId) =>
@@ -42,6 +46,15 @@ namespace CityMarketPOS.Repositories
                 .Include(p => p.OrderDetails)
                 .ThenInclude(d => d.Product)
                 .FirstOrDefaultAsync(p => p.Id == poId);
+
+        public async Task<Dictionary<int, int>> GetReceivedQuantitiesByPOAsync(int poId)
+        {
+            return await _context.GRNDetails
+                .Where(gd => gd.GRN.PurchaseOrderId == poId)
+                .GroupBy(gd => gd.ProductId)
+                .Select(g => new { ProductId = g.Key, TotalReceived = g.Sum(x => x.ReceivedQuantity) })
+                .ToDictionaryAsync(k => k.ProductId, v => v.TotalReceived);
+        }
 
         public async Task ConfirmGRNAndUpdateStockAsync(GRN grn, List<int> productIds, List<int> receivedQtys, List<DateTime?> expiryDates, PurchaseOrder po)
         {
@@ -71,9 +84,25 @@ namespace CityMarketPOS.Repositories
                     }
                 }
 
-                po.Status = "Received";
                 _context.GRNs.Add(grn);
+                await _context.SaveChangesAsync();
 
+                bool isFullyReceived = true;
+                var allReceivedQtys = await GetReceivedQuantitiesByPOAsync(po.Id);
+
+                foreach (var poDetail in po.OrderDetails)
+                {
+                    allReceivedQtys.TryGetValue(poDetail.ProductId, out int totalReceived);
+
+                    if (totalReceived < poDetail.Quantity)
+                    {
+                        isFullyReceived = false;
+                        break;
+                    }
+                }
+
+                po.Status = isFullyReceived ? "Received" : "Partially Received";
+                _context.Update(po);
                 await _context.SaveChangesAsync();
 
                 await transaction.CommitAsync();

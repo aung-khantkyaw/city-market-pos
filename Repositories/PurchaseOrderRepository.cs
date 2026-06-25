@@ -17,10 +17,14 @@ namespace CityMarketPOS.Repositories
                   .ToListAsync();
 
         public async Task<PurchaseOrder> GetByIdWithDetailsAsync(int id)
-            => await _context.PurchaseOrders
+        {
+            return await _context.PurchaseOrders
                 .Include(p => p.Supplier)
-                .Include(p => p.OrderDetails).ThenInclude(d => d.Product)
+                .Include(p => p.OrderDetails)
+                    .ThenInclude(d => d.Product)
+                .Include(p => p.GRNs)
                 .FirstOrDefaultAsync(p => p.Id == id);
+        }
 
         public async Task AddAsync(PurchaseOrder purchaseOrder)
             => await _context.PurchaseOrders.AddAsync(purchaseOrder);

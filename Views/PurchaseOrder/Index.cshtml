@@ -29,6 +29,7 @@
                             <th>PO Number</th>
                             <th>Supplier</th>
                             <th>Date</th>
+                            <th class="text-right">Total Amount</th>
                             <th>Status</th>
                             <th class="text-center">Actions</th>
                         </tr>
@@ -42,6 +43,7 @@
                                     <td><span class="badge badge-secondary p-2">@item.PONumber</span></td>
                                     <td class="font-weight-bold">@(item.Supplier?.Name ?? "N/A")</td>
                                     <td class="text-muted">@item.OrderDate.ToString("dd-MM-yyyy")</td>
+                                    <td class="text-right font-weight-bold text-success">@item.TotalAmount.ToString("N2")</td>
                                     <td>
                                         @if (item.Status == "Pending")
                                         {
@@ -66,13 +68,13 @@
                                         <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info">
                                             <i class="fas fa-eye"></i> View
                                         </a>
-                                        @if (item.Status == "Pending")
+                                        @if (item.Status == "Pending" || item.Status == "Partially Received")
                                         {
                                             <a asp-controller="GRN" asp-action="Create" asp-route-poId="@item.Id" class="btn btn-sm btn-success">
                                                 <i class="fas fa-truck-loading"></i> Receive Goods
                                             </a>
                                         }
-                                        else if (item.Status == "Received")
+                                        @if (item.Status == "Received" || item.Status == "Partially Received")
                                         {
                                             <a asp-controller="GRN" asp-action="DetailsByPO" asp-route-poId="@item.Id" class="btn btn-sm btn-outline-primary">
                                                 <i class="fas fa-file-alt"></i> GRN Details
@@ -85,7 +87,7 @@
                         else
                         {
                             <tr>
-                                <td colspan="5" class="text-center py-4 text-muted">No Purchase Orders found.</td>
+                                <td colspan="6" class="text-center py-4 text-muted">No Purchase Orders found.</td>
                             </tr>
                         }
                     </tbody>
@@ -96,7 +98,7 @@
 </section>
 
 <div class="modal fade" id="poModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-md" role="document">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content" id="poModalContent">
         </div>
     </div>

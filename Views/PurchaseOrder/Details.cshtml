@@ -75,9 +75,11 @@
                     <table class="table table-bordered table-hover align-middle">
                         <thead class="bg-light">
                             <tr>
-                                <th style="width: 10%">#</th>
-                                <th style="width: 65%">Product Name</th>
-                                <th class="text-center" style="width: 25%">Ordered Qty</th>
+                                <th style="width: 5%" class="text-center">#</th>
+                                <th style="width: 45%">Product Name</th>
+                                <th class="text-right" style="width: 15%">Unit Price</th>
+                                <th class="text-center" style="width: 15%">Ordered Qty</th>
+                                <th class="text-right" style="width: 20%">Total</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -87,11 +89,63 @@
                             @foreach (var detail in Model.OrderDetails)
                             {
                                 <tr>
-                                    <td>@serialNo</td>
+                                    <td class="text-center">@serialNo</td>
                                     <td class="font-weight-bold text-dark">@(detail.Product?.Name ?? "Unknown Product")</td>
+                                    <td class="text-right">@detail.UnitPrice.ToString("N2")</td>
                                     <td class="text-center font-weight-bold text-primary">@detail.Quantity</td>
+                                    <td class="text-right">@((detail.Quantity * detail.UnitPrice).ToString("N2"))</td>
                                 </tr>
                                 serialNo++;
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr class="bg-light">
+                                <td colspan="4" class="text-right font-weight-bold">Grand Total</td>
+                                <td class="text-right font-weight-bold text-success" style="font-size: 1.1rem;">
+                                    @Model.TotalAmount.ToString("N2")
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-truck mr-2"></i> Received History (GRNs)</h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover table-sm">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>GRN #</th>
+                                <th>Date</th>
+                                <th>Remarks</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.GRNs != null && Model.GRNs.Any())
+                            {
+                                @foreach (var grn in Model.GRNs)
+                                {
+                                    <tr>
+                                        <td><span class="badge badge-info">@grn.GRNNumber</span></td>
+                                        <td>@grn.ReceivedDate.ToString("dd-MMM-yyyy HH:mm")</td>
+                                        <td>@grn.Remarks</td>
+                                        <td class="text-center">
+                                            <a asp-controller="GRN" asp-action="Details" asp-route-id="@grn.Id" class="btn btn-xs btn-outline-info">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">No GRN records available for this PO.</td>
+                                </tr>
                             }
                         </tbody>
                     </table>

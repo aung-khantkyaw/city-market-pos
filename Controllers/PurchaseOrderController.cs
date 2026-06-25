@@ -63,6 +63,21 @@ namespace CityMarketPOS.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            decimal calculatedTotalAmount = 0;
+            var orderDetails = new List<PurchaseOrderDetail>();
+
+            foreach (var item in model.Items)
+            {
+                orderDetails.Add(new PurchaseOrderDetail
+                {
+                    ProductId = item.ProductId,
+                    Quantity = item.Quantity,
+                    UnitPrice = item.UnitPrice 
+                });
+
+                calculatedTotalAmount += (item.Quantity * item.UnitPrice);
+            }
+
             var po = new PurchaseOrder
             {
                 PONumber = model.PONumber,
@@ -70,14 +85,11 @@ namespace CityMarketPOS.Controllers
                 Status = "Pending",
                 OrderDate = DateTime.Now,
                 ExpectedDate = DateTime.Now.AddDays(7),
-                TotalAmount = 0
-            };
 
-            po.OrderDetails = model.Items.Select(item => new PurchaseOrderDetail
-            {
-                ProductId = item.ProductId,
-                Quantity = item.Quantity
-            }).ToList();
+                TotalAmount = calculatedTotalAmount,
+
+                OrderDetails = orderDetails
+            };
 
             await _poRepo.AddAsync(po);
             await _poRepo.SaveChangesAsync();

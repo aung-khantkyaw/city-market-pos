@@ -16,6 +16,6 @@ namespace CityMarketPOS.Models
         public DateTime ReceivedDate { get; set; } = DateTime.Now;
         public string ReceivedByUserId { get; set; }
         public string? Remarks { get; set; }
-        public List<GRNDetail> GRNDetails { get; set; }
+        public List<GRNDetail> GRNDetails { get; set; } = new List<GRNDetail>();
     }
 }

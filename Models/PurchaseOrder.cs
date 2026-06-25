@@ -27,5 +27,6 @@ namespace CityMarketPOS.Models
         public decimal TotalAmount { get; set; }
 
         public List<PurchaseOrderDetail> OrderDetails { get; set; }
+        public virtual ICollection<GRN> GRNs { get; set; } = new List<GRN>();
     }
 }
