@@ -20,6 +20,7 @@ builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
 builder.Services.AddScoped<IPurchaseOrderRepository, PurchaseOrderRepository>();
 builder.Services.AddScoped<IGRNRepository, GRNRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IBatchTrackingRepository, BatchTrackingRepository>();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {

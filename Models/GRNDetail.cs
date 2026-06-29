@@ -13,9 +13,21 @@ namespace CityMarketPOS.Models
         public int ProductId { get; set; }
         [ForeignKey("ProductId")]
         public Product Product { get; set; }
-
         public int ReceivedQuantity { get; set; }
-        public int CurrentQuantity { get; set; } 
+        public int StoreQuantity { get; set; } 
+        public int StockQuantity { get; set; }
+        public int CurrentStoreQuantity { get; set; }
+        public int CurrentStockQuantity { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal PurchasePrice { get; set; } = 0;
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal SellingPrice { get; set; } = 0;
+        [StringLength(50)]
+        public string? ProductCode { get; set; }
+
+        [StringLength(50)]
+        public string? ItemCode { get; set; }   
         public DateTime? ExpiryDate { get; set; }
     }
 }

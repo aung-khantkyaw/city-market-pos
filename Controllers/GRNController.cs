@@ -66,7 +66,7 @@ namespace CityMarketPOS.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(int poId, List<int> ProductId, List<int> ReceivedQty, List<DateTime?> ExpiryDate, string Remarks)
+        public async Task<IActionResult> Create(int poId, List<int> ProductId, List<int> ReceivedQty, List<DateTime?> ExpiryDate, List<decimal> SellingPrice, List<string> ItemCode, string Remarks)
         {
             string finalRemarks = string.IsNullOrWhiteSpace(Remarks) ? "-" : Remarks;
 
@@ -84,7 +84,7 @@ namespace CityMarketPOS.Controllers
                 ReceivedByUserId = userId
             };
 
-            await _grnRepo.ConfirmGRNAndUpdateStockAsync(grn, ProductId, ReceivedQty, ExpiryDate, po);
+            await _grnRepo.ConfirmGRNAndUpdateStockAsync(grn, ProductId, ReceivedQty, ExpiryDate, SellingPrice, ItemCode, po);
 
             return RedirectToAction(nameof(Index));
         }

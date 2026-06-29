@@ -34,8 +34,8 @@ namespace CityMarketPOS.Repositories
         public async Task<IEnumerable<GRN>> GetByPurchaseOrderIdAsync(int poId)
         {
             return await _context.GRNs
-                .Include(g => g.PurchaseOrder)    
-                .Include(g => g.GRNDetails)      
+                .Include(g => g.PurchaseOrder)
+                .Include(g => g.GRNDetails)
                 .Where(g => g.PurchaseOrderId == poId)
                 .OrderByDescending(g => g.ReceivedDate)
                 .ToListAsync();
@@ -56,7 +56,7 @@ namespace CityMarketPOS.Repositories
                 .ToDictionaryAsync(k => k.ProductId, v => v.TotalReceived);
         }
 
-        public async Task ConfirmGRNAndUpdateStockAsync(GRN grn, List<int> productIds, List<int> receivedQtys, List<DateTime?> expiryDates, PurchaseOrder po)
+        public async Task ConfirmGRNAndUpdateStockAsync(GRN grn, List<int> productIds, List<int> receivedQtys, List<DateTime?> expiryDates, List<decimal> sellingPrices, List<string> itemCodes, PurchaseOrder po)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -71,16 +71,17 @@ namespace CityMarketPOS.Repositories
                         {
                             ProductId = productIds[i],
                             ReceivedQuantity = receivedQtys[i],
-                            CurrentQuantity = receivedQtys[i],
-                            ExpiryDate = expiryDates[i]
+
+                            CurrentStockQuantity = 0,
+                            CurrentStoreQuantity = receivedQtys[i],
+                            StoreQuantity = receivedQtys[i],
+                            StockQuantity = 0,
+
+                            ExpiryDate = expiryDates[i],
+                            SellingPrice = sellingPrices[i],      
+                            ItemCode = itemCodes[i]
                         });
 
-                        var product = await _context.Products.FindAsync(productIds[i]);
-                        if (product != null)
-                        {
-                            product.StockQuantity += receivedQtys[i];
-                            //_context.Products.Update(product);
-                        }
                     }
                 }
 
@@ -93,7 +94,6 @@ namespace CityMarketPOS.Repositories
                 foreach (var poDetail in po.OrderDetails)
                 {
                     allReceivedQtys.TryGetValue(poDetail.ProductId, out int totalReceived);
-
                     if (totalReceived < poDetail.Quantity)
                     {
                         isFullyReceived = false;
@@ -113,11 +113,13 @@ namespace CityMarketPOS.Repositories
                 throw;
             }
         }
-
         public async Task<IEnumerable<Product>> GetLowStockProductsAsync()
         {
-            var products = await _context.Products.ToListAsync();
-            return products.Where(p => p.TotalQuantity <= p.MinStockLevel).ToList();
+            return await _context.Products
+                .Where(p => _context.GRNDetails
+                    .Where(g => g.ProductId == p.Id)
+                    .Sum(g => g.CurrentStoreQuantity + g.CurrentStockQuantity) <= p.MinStockLevel)
+                .ToListAsync();
         }
 
         public async Task<IEnumerable<GRNDetail>> GetExpiringItemsAsync(int daysThreshold)
@@ -126,7 +128,7 @@ namespace CityMarketPOS.Repositories
             return await _context.GRNDetails
                 .Include(g => g.Product)
                 .Include(g => g.GRN)
-                .Where(g => g.CurrentQuantity > 0 && g.ExpiryDate.HasValue && g.ExpiryDate.Value <= targetDate)
+                .Where(g => g.CurrentStockQuantity > 0 && g.ExpiryDate.HasValue && g.ExpiryDate.Value <= targetDate)
                 .OrderBy(g => g.ExpiryDate)
                 .ToListAsync();
         }

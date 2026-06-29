@@ -118,6 +118,30 @@
                                     <p>GRN (Stock In)</p>
                                 </a>
                             </li>
+
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="nav-icon fas fa-boxes"></i>
+                                    <p>
+                                        Batch & Stock
+                                        <i class="right fas fa-angle-left"></i>
+                                    </p>
+                                </a>
+                                <ul class="nav nav-treeview">
+                                    <li class="nav-item">
+                                        <a asp-action="Index" asp-controller="BatchTracking" class="nav-link">
+                                            <i class="far fa-circle nav-icon"></i>
+                                            <p>Current Inventory</p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a asp-action="TransferHistory" asp-controller="BatchTracking" class="nav-link">
+                                            <i class="far fa-circle nav-icon"></i>
+                                            <p>Transfer History</p>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
                         }
 
                         @if (User.IsInRole("Manager"))

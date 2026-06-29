@@ -1,0 +1,64 @@
+﻿@model IEnumerable<CityMarketPOS.Models.StockTransferLog>
+@{
+    ViewData["Title"] = "Transfer History";
+}
+
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1><i class="fas fa-history text-secondary mr-2"></i> Stock Transfer History</h1>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="card card-outline card-secondary shadow-sm">
+            <div class="card-body p-0 table-responsive">
+                <table class="table table-hover align-middle text-sm" id="historyTable">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Product Name</th>
+                            <th>Item Code</th>
+                            <th class="text-center">Transferred Qty</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@item.TransferDate.ToString("dd-MMM-yyyy HH:mm")</td>
+                                    <td class="font-weight-bold">@item.GRNDetail.Product.Name</td>
+                                    <td><span class="badge badge-light border">@item.GRNDetail.ItemCode</span></td>
+                                    <td class="text-center">
+                                        <span class="badge badge-warning px-3 py-2 text-md">
+                                            <i class="fas fa-arrow-right mr-1"></i> @item.TransferQuantity
+                                        </span>
+                                    </td>
+                                    <td>@(item.Remarks ?? "-")</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#historyTable').DataTable({
+                "pageLength": 25,
+                "ordering": false 
+            });
+        });
+    </script>
+}

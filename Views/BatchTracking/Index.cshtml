@@ -1,0 +1,160 @@
+﻿@model IEnumerable<CityMarketPOS.Models.GRNDetail>
+@{
+    ViewData["Title"] = "Batch & Branch Tracking";
+}
+
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1><i class="fas fa-network-wired text-primary mr-2"></i> Batch Tracking</h1>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="card card-outline card-primary shadow-sm">
+            <div class="card-body p-0 table-responsive">
+                <table class="table table-hover align-middle text-sm" id="batchTable">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>GRN Number</th>
+                            <th>Product</th>
+                            <th class="text-center">Store Qty<br /><small>(Warehouse)</small></th>
+                            <th class="text-center">Stock Qty<br /><small>(Shop)</small></th>
+                            <th>Expiry Date</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                bool isExpiringSoon = item.ExpiryDate.HasValue && item.ExpiryDate.Value <= DateTime.Now.AddDays(30);
+
+                                <tr>
+                                    <td><span class="badge badge-info p-1">@item.GRN?.GRNNumber</span></td>
+                                    <td class="font-weight-bold">@item.Product?.Name</td>
+
+                                    <td class="text-center">
+                                        <span class="badge badge-primary px-2 py-1" id="storeQty-@item.Id">@item.CurrentStoreQuantity</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge badge-success px-2 py-1" id="stockQty-@item.Id">@item.CurrentStockQuantity</span>
+                                    </td>
+
+                                    <td>
+                                        @if (item.ExpiryDate.HasValue)
+                                        {
+                                            <span class="@(isExpiringSoon ? "text-danger font-weight-bold" : "text-dark")">
+                                                @item.ExpiryDate.Value.ToString("dd-MMM-yyyy")
+                                                @(isExpiringSoon ? " ⚠️" : "")
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-xs btn-outline-warning"
+                                                onclick="openTransferModal(@item.Id, '@item.Product?.Name', @item.CurrentStoreQuantity)"
+                                            @(item.CurrentStoreQuantity <= 0 ? "disabled" : "")>
+                                            <i class="fas fa-exchange-alt"></i> Transfer to Stock
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="modal fade" id="transferModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h6 class="modal-title font-weight-bold">Transfer to Shop (Stock)</h6>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body text-center">
+                <p class="mb-1 font-weight-bold" id="modalProductName"></p>
+                <p class="text-muted small mb-3">Available in Store: <strong id="modalMaxStore" class="text-primary"></strong></p>
+
+                <input type="hidden" id="modalDetailId" />
+                <div class="form-group">
+                    <input type="number" id="modalTransferQty" class="form-control text-center text-lg" min="1" value="1" />
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning font-weight-bold" onclick="submitTransfer()">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function () {
+        $('#batchTable').DataTable({
+        "pageLength": 25,
+        "ordering": true
+        });
+        });
+
+        function openTransferModal(detailId, productName, maxStoreQty) {
+        $('#modalDetailId').val(detailId);
+        $('#modalProductName').text(productName);
+        $('#modalMaxStore').text(maxStoreQty);
+        $('#modalTransferQty').attr('max', maxStoreQty).val(1);
+        $('#transferModal').modal('show');
+        }
+
+        function submitTransfer() {
+        let detailId = $('#modalDetailId').val();
+        let qty = $('#modalTransferQty').val();
+        let maxQty = parseInt($('#modalMaxStore').text());
+
+        if (qty <= 0 || qty > maxQty) {
+        Swal.fire('Warning', 'Invalid transfer quantity.', 'warning');
+        return;
+        }
+
+        $.ajax({
+        url: '@Url.Action("TransferStock", "BatchTracking")',
+        type: 'POST',
+        data: { detailId: detailId, transferQty: qty },
+        success: function (res) {
+        if (res.success) {
+        $('#transferModal').modal('hide');
+        Swal.fire({
+        icon: 'success', title: 'Transferred!', text: res.message, timer: 1500, showConfirmButton: false
+        });
+
+        // Page Refresh မလုပ်ဘဲ UI ပေါ်က ဂဏန်းတွေကို တိုက်ရိုက် Update လုပ်ခြင်း
+        $('#storeQty-' + detailId).text(res.newStoreQty);
+        $('#stockQty-' + detailId).text(res.newStockQty);
+
+        // Store Qty 0 ဖြစ်သွားရင် Button ကို Disable လုပ်ခြင်း
+        if(res.newStoreQty <= 0) {
+        $('button[onclick^="openTransferModal(' + detailId + '"]').attr('disabled', true);
+        }
+        } else {
+        Swal.fire('Error', res.message, 'error');
+        }
+        },
+        error: function () {
+        Swal.fire('Error', 'Server connection failed.', 'error');
+        }
+        });
+        }
+    </script>
+}

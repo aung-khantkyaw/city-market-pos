@@ -38,10 +38,12 @@
                     <table class="table table-bordered table-striped">
                         <thead class="bg-light">
                             <tr>
-                                <th width="10%" class="text-center">#</th>
-                                <th width="50%">Product Name</th>
-                                <th width="20%" class="text-center">Received Qty</th>
-                                <th width="20%" class="text-center">Expiry Date</th>
+                                <th width="5%" class="text-center">#</th>
+                                <th width="35%">Product Name</th>
+                                <th width="15%" class="text-center">Item Code</th>
+                                <th width="15%" class="text-center">Received Qty</th>
+                                <th width="15%" class="text-center">Selling Price</th>
+                                <th width="15%" class="text-center">Expiry Date</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -53,10 +55,10 @@
                                 <tr>
                                     <td class="text-center">@serial</td>
                                     <td class="font-weight-bold">@detail.Product.Name</td>
+                                    <td class="text-center"><code>@detail.ItemCode</code></td>
                                     <td class="text-center text-primary font-weight-bold">@detail.ReceivedQuantity</td>
-                                    <td class="text-center">
-                                        @(detail.ExpiryDate?.ToString("dd MMM yyyy") ?? "-")
-                                    </td>
+                                    <td class="text-center">@detail.SellingPrice.ToString("N2")</td>
+                                    <td class="text-center">@(detail.ExpiryDate?.ToString("dd MMM yyyy") ?? "-")</td>
                                 </tr>
                                 serial++;
                             }
