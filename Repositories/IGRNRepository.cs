@@ -11,7 +11,7 @@ namespace CityMarketPOS.Repositories
         Task<IEnumerable<GRN>> GetByPurchaseOrderIdAsync(int poId);
 
         Task<PurchaseOrder> GetPurchaseOrderWithDetailsAsync(int poId);
-        Task ConfirmGRNAndUpdateStockAsync(GRN grn, List<int> productIds, List<int> receivedQtys, List<DateTime?> expiryDates, List<decimal> SellingPrice, List<string> ItemCode, PurchaseOrder po);
+        Task ConfirmGRNAndUpdateStockAsync(GRN grn, List<int> productIds, List<int> receivedQtys, List<DateTime?> expiryDates, List<decimal> sellingPrices, List<string> codeTypes, List<string> codePrefixes, List<string> codeValues, PurchaseOrder po);
         Task<IEnumerable<Product>> GetLowStockProductsAsync();
         Task<IEnumerable<GRNDetail>> GetExpiringItemsAsync(int daysThreshold);
         Task<Dictionary<int, int>> GetReceivedQuantitiesByPOAsync(int poId);

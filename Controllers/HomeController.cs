@@ -1,6 +1,7 @@
 using CityMarketPOS.Models.ViewModels;
 using CityMarketPOS.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 
 namespace CityMarketPOS.Controllers
@@ -24,16 +25,39 @@ namespace CityMarketPOS.Controllers
         }
 
         private readonly IGRNRepository _grnRepo;
+        private readonly ApplicationDbContext _context;
 
-        public HomeController(IGRNRepository grnRepo)
+        public HomeController(IGRNRepository grnRepo, ApplicationDbContext context)
         {
             _grnRepo = grnRepo;
+            _context = context;
         }
 
         public async Task<IActionResult> Index()
         {
-            ViewBag.LowStock = await _grnRepo.GetLowStockProductsAsync();
-            ViewBag.Expiring = await _grnRepo.GetExpiringItemsAsync(7);
+            var lowStockItems = await _context.Products
+                .Select(p => new LowStockViewModel
+                {
+                    ProductName = p.Name,
+                    MinStockLevel = p.MinStockLevel,
+                    TotalCurrentStoreQuantity = _context.GRNDetails
+                                                .Where(g => g.ProductId == p.Id)
+                                                .Sum(g => (int?)g.CurrentStoreQuantity) ?? 0
+                })
+                .Where(x => x.TotalCurrentStoreQuantity <= x.MinStockLevel) 
+                .ToListAsync();
+
+            var targetDate = DateTime.Now.AddDays(7);
+            var expiringItems = await _context.GRNDetails
+                .Include(g => g.Product)
+                .Where(g => g.CurrentStoreQuantity > 0 && 
+                            g.ExpiryDate.HasValue &&      
+                            g.ExpiryDate.Value.Date <= targetDate.Date) 
+                .OrderBy(g => g.ExpiryDate)
+                .ToListAsync();
+
+            ViewBag.LowStock = lowStockItems;
+            ViewBag.Expiring = expiringItems;
 
             return View();
         }

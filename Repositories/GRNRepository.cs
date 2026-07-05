@@ -42,10 +42,11 @@ namespace CityMarketPOS.Repositories
         }
 
         public async Task<PurchaseOrder> GetPurchaseOrderWithDetailsAsync(int poId) =>
-            await _context.PurchaseOrders
-                .Include(p => p.OrderDetails)
+        await _context.PurchaseOrders
+            .Include(p => p.OrderDetails)
                 .ThenInclude(d => d.Product)
-                .FirstOrDefaultAsync(p => p.Id == poId);
+                    .ThenInclude(p => p.Category)
+            .FirstOrDefaultAsync(p => p.Id == poId);
 
         public async Task<Dictionary<int, int>> GetReceivedQuantitiesByPOAsync(int poId)
         {
@@ -56,7 +57,7 @@ namespace CityMarketPOS.Repositories
                 .ToDictionaryAsync(k => k.ProductId, v => v.TotalReceived);
         }
 
-        public async Task ConfirmGRNAndUpdateStockAsync(GRN grn, List<int> productIds, List<int> receivedQtys, List<DateTime?> expiryDates, List<decimal> sellingPrices, List<string> itemCodes, PurchaseOrder po)
+        public async Task ConfirmGRNAndUpdateStockAsync(GRN grn, List<int> productIds, List<int> receivedQtys, List<DateTime?> expiryDates, List<decimal> sellingPrices, List<string> codeTypes, List<string> codePrefixes, List<string> codeValues, PurchaseOrder po)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -67,6 +68,22 @@ namespace CityMarketPOS.Repositories
                 {
                     if (receivedQtys[i] > 0)
                     {
+                        string pCode = null;
+                        string iCode = null;
+
+                        if (!string.IsNullOrWhiteSpace(codeValues[i]))
+                        {
+                            if (codeTypes[i] == "Barcode")
+                            {
+                                pCode = codeValues[i];
+                            }
+                            else if (codeTypes[i] == "ItemCode")
+                            {
+                                string prefix = string.IsNullOrWhiteSpace(codePrefixes[i]) ? "UNK" : codePrefixes[i];
+                                iCode = $"{prefix}-{codeValues[i]}";
+                            }
+                        }
+
                         grn.GRNDetails.Add(new GRNDetail
                         {
                             ProductId = productIds[i],
@@ -78,10 +95,10 @@ namespace CityMarketPOS.Repositories
                             StockQuantity = 0,
 
                             ExpiryDate = expiryDates[i],
-                            SellingPrice = sellingPrices[i],      
-                            ItemCode = itemCodes[i]
+                            SellingPrice = sellingPrices[i],
+                            ProductCode = pCode, 
+                            ItemCode = iCode 
                         });
-
                     }
                 }
 
@@ -113,6 +130,7 @@ namespace CityMarketPOS.Repositories
                 throw;
             }
         }
+
         public async Task<IEnumerable<Product>> GetLowStockProductsAsync()
         {
             return await _context.Products

@@ -1,25 +1,36 @@
-﻿@model IEnumerable<CityMarketPOS.Models.GRNDetail>
-@{
-    ViewData["Title"] = "Home Page";
+﻿@{
+    ViewData["Title"] = "Dashboard";
 }
 
 <section class="content">
-    <div class="container-fluid">
+    <div class="container-fluid mt-3">
         <div class="row">
             <div class="col-md-6">
                 <div class="card card-danger shadow">
-                    <div class="card-header"><h3 class="card-title">Low Stock (Reorder)</h3></div>
-                    <div class="card-body p-0">
-                        <table class="table table-striped">
-                            <thead><tr><th>Product</th><th>Stock</th><th>Alert Level</th></tr></thead>
+                    <div class="card-header"><h3 class="card-title"><i class="fas fa-exclamation-triangle"></i> Low Stock (Reorder)</h3></div>
+                    <div class="card-body p-0 table-responsive">
+                        <table class="table table-striped align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Product Name</th>
+                                    <th class="text-center">Current Stock</th>
+                                    <th class="text-center">Min Level</th>
+                                </tr>
+                            </thead>
                             <tbody>
-                                @foreach (var p in ViewBag.LowStock as List<CityMarketPOS.Models.Product>)
+                                @foreach (var p in ViewBag.LowStock as List<CityMarketPOS.Models.ViewModels.LowStockViewModel>)
                                 {
                                     <tr>
-                                        <td>@p.Name</td>
-                                        @* <td><span class="badge badge-danger">@p.TotalQuantity</span></td> *@
-                                        <td>@p.MinStockLevel</td>
+                                        <td><strong>@p.ProductName</strong></td>
+                                        <td class="text-center">
+                                            <span class="badge badge-danger" style="font-size: 14px;">@p.TotalCurrentStoreQuantity</span>
+                                        </td>
+                                        <td class="text-center text-muted">@p.MinStockLevel</td>
                                     </tr>
+                                }
+                                @if (ViewBag.LowStock == null || ((List<CityMarketPOS.Models.ViewModels.LowStockViewModel>)ViewBag.LowStock).Count == 0)
+                                {
+                                    <tr><td colspan="3" class="text-center text-muted py-3">All stocks are sufficient.</td></tr>
                                 }
                             </tbody>
                         </table>
@@ -29,18 +40,39 @@
 
             <div class="col-md-6">
                 <div class="card card-warning shadow">
-                    <div class="card-header"><h3 class="card-title">Expiring Items (Next 7 Days)</h3></div>
-                    <div class="card-body p-0">
-                        <table class="table table-striped">
-                            <thead><tr><th>Product</th><th>Qty</th><th>Expiry Date</th></tr></thead>
+                    <div class="card-header"><h3 class="card-title text-dark"><i class="fas fa-calendar-times"></i> Expiring Items (Next 7 Days)</h3></div>
+                    <div class="card-body p-0 table-responsive">
+                        <table class="table table-striped align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Product Name</th>
+                                    <th class="text-center">Qty</th>
+                                    <th class="text-center">Expiry Date</th>
+                                </tr>
+                            </thead>
                             <tbody>
                                 @foreach (var g in ViewBag.Expiring as List<CityMarketPOS.Models.GRNDetail>)
                                 {
+                                    bool isExpired = g.ExpiryDate.Value.Date < DateTime.Now.Date;
+
                                     <tr>
-                                        <td>@g.Product.Name</td>
-                                        <td>@g.CurrentStockQuantity</td>
-                                        <td>@g.ExpiryDate?.ToString("yyyy-MM-dd")</td>
+                                        <td><strong>@g.Product.Name</strong></td>
+                                        <td class="text-center">@g.CurrentStoreQuantity</td>
+                                        <td class="text-center">
+                                            @if (isExpired)
+                                            {
+                                                <span class="badge badge-danger">Expired on @g.ExpiryDate?.ToString("dd MMM yyyy")</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge badge-warning text-dark">@g.ExpiryDate?.ToString("dd MMM yyyy")</span>
+                                            }
+                                        </td>
                                     </tr>
+                                }
+                                @if (ViewBag.Expiring == null || ((List<CityMarketPOS.Models.GRNDetail>)ViewBag.Expiring).Count == 0)
+                                {
+                                    <tr><td colspan="3" class="text-center text-muted py-3">No expiring items in the next 7 days.</td></tr>
                                 }
                             </tbody>
                         </table>

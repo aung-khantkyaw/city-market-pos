@@ -8,7 +8,7 @@
     <div class="container-fluid">
         <div class="card card-success shadow">
             <div class="card-header">
-                <h3 class="card-title">Goods Received Note (PO: @Model.PONumber)</h3>
+                <h3 class="card-title">Goods Received Note (Purchase Order ID: @Model.PONumber)</h3>
             </div>
             <form asp-action="Create" method="post">
                 <input type="hidden" name="poId" value="@Model.Id" />
@@ -16,23 +16,22 @@
                     <table class="table table-bordered table-hover align-middle">
                         <thead class="bg-light">
                             <tr>
-                                <th>Product Name</th>
-                                <th class="text-center" width="10%">Ordered</th>
-                                <th class="text-center" width="10%">Received</th>
-                                <th class="text-center" width="10%">Remaining</th>
+                                <th width="20%">Product Name</th>
+                                <th class="text-center" width="5%">Ordered</th>
+                                <th class="text-center" width="5%">Received</th>
+                                <th class="text-center" width="5%">Remaining</th>
                                 <th width="10%">Receiving Now</th>
+                                <th width="10%">Purchase Price</th>
                                 <th width="10%">Sale Price</th>
-                                <th width="20%">BarCode / Item Code</th>
-                                <th width="20%">Expiry Date</th>
+                                <th width="15%">Code Type & Value</th>
+                                <th width="15%">Expiry Date</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var item in Model.OrderDetails)
                             {
-                                // လက်ခံရရှိပြီးသား အရေအတွက်ကို ထုတ်ယူခြင်း
                                 receivedDict.TryGetValue(item.ProductId, out int alreadyReceived);
 
-                                // ကျန်နေသော အရေအတွက် တွက်ချက်ခြင်း
                                 int remainingQty = item.Quantity - alreadyReceived;
                                 bool isCompleted = remainingQty <= 0;
 
@@ -60,13 +59,31 @@
                                         @(isCompleted ? "readonly" : "required") />
                                     </td>
                                     <td>
+                                        <span>
+                                            @item.UnitPrice
+                                        </span>
+                                    </td>
+                                    <td>
                                         <input type="number" step="0.01" name="SellingPrice"
                                                class="form-control"
                                                value="@item.UnitPrice"
                                                required />
                                     </td>
                                     <td>
-                                        <input type="text" name="ItemCode" class="form-control" placeholder="Barcode/ItemCode" />
+                                        <div class="input-group">
+                                            <select name="CodeType" class="form-select form-control code-type-selector" style="max-width: 110px;" @(isCompleted ? "disabled" : "")>
+                                                <option value="Barcode">BarCode</option>
+                                                <option value="ItemCode">ItemCode</option>
+                                            </select>
+
+                                            <span class="input-group-text category-prefix bg-light text-muted" style="display: none;">
+                                                @(item.Product.Category?.ShortName ?? "UNK")-
+                                            </span>
+
+                                            <input type="hidden" name="CodePrefix" value="@item.Product.Category?.ShortName" />
+
+                                            <input type="text" name="CodeValue" class="form-control" placeholder="Enter Code" @(isCompleted ? "readonly style=pointer-events:none;" : "") />
+                                        </div>
                                     </td>
                                     <td>
                                         <input type="date" name="ExpiryDate" class="form-control" @(isCompleted ? "readonly style=pointer-events:none;" : "") />
@@ -88,3 +105,19 @@
         </div>
     </div>
 </section>
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('.code-type-selector').on('change', function () {
+                var $row = $(this).closest('.input-group');
+                var $prefix = $row.find('.category-prefix');
+
+                if ($(this).val() === 'ItemCode') {
+                    $prefix.show(); 
+                } else {
+                    $prefix.hide(); 
+                }
+            });
+        });
+    </script>
+}
