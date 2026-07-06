@@ -40,8 +40,7 @@
                             <tr>
                                 <th width="5%" class="text-center">#</th>
                                 <th width="20%">Product Name</th>
-                                <th width="10%" class="text-center">Product Code</th>
-                                <th width="10%" class="text-center">Item Code</th>
+                                <th width="15%" class="text-center">Code (Item/Barcode)</th>
                                 <th width="10%" class="text-center">Received Qty</th>
                                 <th width="15%" class="text-center">Purchase Price</th>
                                 <th width="15%" class="text-center">Selling Price</th>
@@ -57,8 +56,22 @@
                                 <tr>
                                     <td class="text-center">@serial</td>
                                     <td class="font-weight-bold">@detail.Product.Name</td>
-                                    <td class="text-center"><code>@detail.ProductCode</code></td>
-                                    <td class="text-center"><code>@detail.ItemCode</code></td>
+
+                                    <td class="text-center">
+                                        @if (!string.IsNullOrWhiteSpace(detail.ProductCode))
+                                        {
+                                            <span class="badge badge-info" title="Barcode"><i class="fas fa-barcode"></i> @detail.ProductCode</span>
+                                        }
+                                        else if (!string.IsNullOrWhiteSpace(detail.ItemCode))
+                                        {
+                                            <span class="badge badge-secondary" title="Item Code"><i class="fas fa-tag"></i> @detail.ItemCode</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+
                                     <td class="text-center text-primary font-weight-bold">@detail.ReceivedQuantity</td>
                                     <td class="text-center">@detail.PurchasePrice.ToString("N2")</td>
                                     <td class="text-center">@detail.SellingPrice.ToString("N2")</td>

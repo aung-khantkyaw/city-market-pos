@@ -1,6 +1,5 @@
 ﻿@model CityMarketPOS.Models.PurchaseOrder
 @{
-    // Controller ကနေ ပို့လိုက်တဲ့ Received Quantities တွေကို Dictionary အဖြစ် ပြောင်းယူခြင်း
     var receivedDict = ViewBag.ReceivedQuantities as Dictionary<int, int> ?? new Dictionary<int, int>();
 }
 
@@ -16,14 +15,14 @@
                     <table class="table table-bordered table-hover align-middle">
                         <thead class="bg-light">
                             <tr>
-                                <th width="20%">Product Name</th>
+                                <th width="15%">Product Name</th>
                                 <th class="text-center" width="5%">Ordered</th>
                                 <th class="text-center" width="5%">Received</th>
                                 <th class="text-center" width="5%">Remaining</th>
-                                <th width="10%">Receiving Now</th>
+                                <th width="5%">Receiving Now</th>
                                 <th width="10%">Purchase Price</th>
                                 <th width="10%">Sale Price</th>
-                                <th width="15%">Code Type & Value</th>
+                                <th width="30%">Code Type & Value</th>
                                 <th width="15%">Expiry Date</th>
                             </tr>
                         </thead>
@@ -82,7 +81,7 @@
 
                                             <input type="hidden" name="CodePrefix" value="@item.Product.Category?.ShortName" />
 
-                                            <input type="text" name="CodeValue" class="form-control" placeholder="Enter Code" @(isCompleted ? "readonly style=pointer-events:none;" : "") />
+                                            <input type="text" name="CodeValue" class="form-control" placeholder="Enter Code " @(isCompleted ? "readonly style=pointer-events:none;" : "") />
                                         </div>
                                     </td>
                                     <td>
@@ -111,11 +110,55 @@
             $('.code-type-selector').on('change', function () {
                 var $row = $(this).closest('.input-group');
                 var $prefix = $row.find('.category-prefix');
+                var $codeInput = $row.find('input[name="CodeValue"]');
 
                 if ($(this).val() === 'ItemCode') {
-                    $prefix.show(); 
+                    $prefix.show();
+                    $codeInput.attr('placeholder', 'e.g., 001, A12');
                 } else {
-                    $prefix.hide(); 
+                    $prefix.hide();
+                    $codeInput.attr('placeholder', 'e.g., 1234567890123');
+                }
+            });
+
+            $('.code-type-selector').trigger('change');
+
+            $('form').on('submit', function (e) {
+                let isValid = true;
+                let errorMessage = "";
+
+                $('.code-type-selector').each(function () {
+                    let $row = $(this).closest('tr');
+                    let codeType = $(this).val();
+                    let codeValue = $row.find('input[name="CodeValue"]').val().trim();
+                    let productName = $row.find('td:first strong').text().trim();
+
+                    if (codeType === 'Barcode' && codeValue !== "") {
+
+                        if (!/^\d{13}$/.test(codeValue)) {
+                            isValid = false;
+                            errorMessage += `[${productName}] Barcode must be exactly 13 digits.\n`;
+                        }
+                        else {
+                            let sum = 0;
+                            for (let i = 0; i < 12; i++) {
+                                sum += parseInt(codeValue.charAt(i)) * (i % 2 === 0 ? 1 : 3);
+                            }
+
+                            let checkDigit = 10 - (sum % 10);
+                            if (checkDigit === 10) checkDigit = 0;
+
+                            if (checkDigit !== parseInt(codeValue.charAt(12))) {
+                                isValid = false;
+                                errorMessage += `[${productName}] Invalid EAN-13 barcode (Checksum failed).\n`;
+                            }
+                        }
+                    }
+                });
+
+                if (!isValid) {
+                    e.preventDefault();
+                    alert("Please fix the following errors:\n\n" + errorMessage);
                 }
             });
         });

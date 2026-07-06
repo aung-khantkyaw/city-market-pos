@@ -3,6 +3,7 @@ using CityMarketPOS.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,11 +16,13 @@ namespace CityMarketPOS.Controllers
     {
         private readonly IGRNRepository _grnRepo;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ApplicationDbContext _context;
 
-        public GRNController(IGRNRepository grnRepo, UserManager<ApplicationUser> userManager)
+        public GRNController(IGRNRepository grnRepo, UserManager<ApplicationUser> userManager, ApplicationDbContext context)
         {
             _grnRepo = grnRepo;
             _userManager = userManager;
+            _context = context;
         }
 
         public async Task<IActionResult> Index()
@@ -70,8 +73,9 @@ namespace CityMarketPOS.Controllers
         {
             string finalRemarks = string.IsNullOrWhiteSpace(Remarks) ? "-" : Remarks;
 
-            var po = await _grnRepo.GetPurchaseOrderWithDetailsAsync(poId);
-            if (po == null) return NotFound();
+            var poExists = await _context.PurchaseOrders.AnyAsync(p => p.Id == poId); 
+
+            if (!poExists) return NotFound(); 
 
             var user = await _userManager.GetUserAsync(User);
             string userId = user?.Id ?? "System";
@@ -84,7 +88,8 @@ namespace CityMarketPOS.Controllers
                 ReceivedByUserId = userId
             };
 
-            await _grnRepo.ConfirmGRNAndUpdateStockAsync(grn, ProductId, ReceivedQty, ExpiryDate, SellingPrice, CodeType, CodePrefix, CodeValue, po);
+            // 'po' အစား 'poId' ကိုပဲ ပို့လိုက်ပါ
+            await _grnRepo.ConfirmGRNAndUpdateStockAsync(grn, ProductId, ReceivedQty, ExpiryDate, SellingPrice, CodeType, CodePrefix, CodeValue, poId);
 
             return RedirectToAction(nameof(Index));
         }

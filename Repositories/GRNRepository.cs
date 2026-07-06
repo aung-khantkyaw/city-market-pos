@@ -57,11 +57,17 @@ namespace CityMarketPOS.Repositories
                 .ToDictionaryAsync(k => k.ProductId, v => v.TotalReceived);
         }
 
-        public async Task ConfirmGRNAndUpdateStockAsync(GRN grn, List<int> productIds, List<int> receivedQtys, List<DateTime?> expiryDates, List<decimal> sellingPrices, List<string> codeTypes, List<string> codePrefixes, List<string> codeValues, PurchaseOrder po)
+        public async Task ConfirmGRNAndUpdateStockAsync(GRN grn, List<int> productIds, List<int> receivedQtys, List<DateTime?> expiryDates, List<decimal> sellingPrices, List<string> codeTypes, List<string> codePrefixes, List<string> codeValues, int poId)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
+                var po = await _context.PurchaseOrders
+                    .Include(p => p.OrderDetails)
+                    .FirstOrDefaultAsync(p => p.Id == poId);
+
+                if (po == null) throw new Exception("Purchase Order not found.");
+
                 grn.GRNDetails = new List<GRNDetail>();
 
                 for (int i = 0; i < productIds.Count; i++)
@@ -84,6 +90,9 @@ namespace CityMarketPOS.Repositories
                             }
                         }
 
+                        var poItem = po.OrderDetails.FirstOrDefault(od => od.ProductId == productIds[i]);
+                        decimal pPrice = poItem != null ? poItem.UnitPrice : 0;
+
                         grn.GRNDetails.Add(new GRNDetail
                         {
                             ProductId = productIds[i],
@@ -96,8 +105,9 @@ namespace CityMarketPOS.Repositories
 
                             ExpiryDate = expiryDates[i],
                             SellingPrice = sellingPrices[i],
-                            ProductCode = pCode, 
-                            ItemCode = iCode 
+                            PurchasePrice = pPrice, 
+                            ProductCode = pCode,
+                            ItemCode = iCode
                         });
                     }
                 }
@@ -106,7 +116,7 @@ namespace CityMarketPOS.Repositories
                 await _context.SaveChangesAsync();
 
                 bool isFullyReceived = true;
-                var allReceivedQtys = await GetReceivedQuantitiesByPOAsync(po.Id);
+                var allReceivedQtys = await GetReceivedQuantitiesByPOAsync(poId);
 
                 foreach (var poDetail in po.OrderDetails)
                 {
