@@ -57,16 +57,21 @@ namespace CityMarketPOS.Repositories
                 .ToDictionaryAsync(k => k.ProductId, v => v.TotalReceived);
         }
 
-        public async Task ConfirmGRNAndUpdateStockAsync(GRN grn, List<int> productIds, List<int> receivedQtys, List<DateTime?> expiryDates, List<decimal> sellingPrices, List<string> codeTypes, List<string> codePrefixes, List<string> codeValues, int poId)
+        public async Task ConfirmGRNAndUpdateStockAsync(GRN grn, List<int> productIds, List<int> receivedQtys, List<DateTime?> expiryDates, List<decimal> sellingPrices, int poId)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 var po = await _context.PurchaseOrders
+                    .Include(p => p.Supplier)
                     .Include(p => p.OrderDetails)
+                        .ThenInclude(od => od.Product)
+                            .ThenInclude(p => p.Category)
                     .FirstOrDefaultAsync(p => p.Id == poId);
 
                 if (po == null) throw new Exception("Purchase Order not found.");
+
+                int supplierId = po.SupplierId;
 
                 grn.GRNDetails = new List<GRNDetail>();
 
@@ -74,40 +79,27 @@ namespace CityMarketPOS.Repositories
                 {
                     if (receivedQtys[i] > 0)
                     {
-                        string pCode = null;
-                        string iCode = null;
-
-                        if (!string.IsNullOrWhiteSpace(codeValues[i]))
-                        {
-                            if (codeTypes[i] == "Barcode")
-                            {
-                                pCode = codeValues[i];
-                            }
-                            else if (codeTypes[i] == "ItemCode")
-                            {
-                                string prefix = string.IsNullOrWhiteSpace(codePrefixes[i]) ? "UNK" : codePrefixes[i];
-                                iCode = $"{prefix}-{codeValues[i]}";
-                            }
-                        }
-
                         var poItem = po.OrderDetails.FirstOrDefault(od => od.ProductId == productIds[i]);
-                        decimal pPrice = poItem != null ? poItem.UnitPrice : 0;
+
+                        if (poItem == null) continue;
+
+                        decimal pPrice = poItem.UnitPrice;
+                        string categoryShortName = poItem.Product?.Category?.ShortName ?? "UNK";
+                        int productId = productIds[i];
+
+                        string generatedItemCode = $"{categoryShortName}{productId}{supplierId}";
 
                         grn.GRNDetails.Add(new GRNDetail
                         {
-                            ProductId = productIds[i],
+                            ProductId = productId,
                             ReceivedQuantity = receivedQtys[i],
-
-                            CurrentStockQuantity = 0,
-                            CurrentStoreQuantity = receivedQtys[i],
-                            StoreQuantity = receivedQtys[i],
-                            StockQuantity = 0,
+                            StockQuantity = receivedQtys[i],
+                            CurrentStockQuantity = receivedQtys[i],
 
                             ExpiryDate = expiryDates[i],
                             SellingPrice = sellingPrices[i],
-                            PurchasePrice = pPrice, 
-                            ProductCode = pCode,
-                            ItemCode = iCode
+                            PurchasePrice = pPrice,
+                            ItemCode = generatedItemCode
                         });
                     }
                 }
@@ -146,7 +138,7 @@ namespace CityMarketPOS.Repositories
             return await _context.Products
                 .Where(p => _context.GRNDetails
                     .Where(g => g.ProductId == p.Id)
-                    .Sum(g => g.CurrentStoreQuantity + g.CurrentStockQuantity) <= p.MinStockLevel)
+                    .Sum(g => g.CurrentStockQuantity) <= p.MinStockLevel)
                 .ToListAsync();
         }
 

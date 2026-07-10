@@ -40,17 +40,17 @@ namespace CityMarketPOS.Controllers
                 {
                     ProductName = p.Name,
                     MinStockLevel = p.MinStockLevel,
-                    TotalCurrentStoreQuantity = _context.GRNDetails
+                    TotalCurrentStockQuantity = _context.GRNDetails
                                                 .Where(g => g.ProductId == p.Id)
-                                                .Sum(g => (int?)g.CurrentStoreQuantity) ?? 0
+                                                .Sum(g => (int?)g.CurrentStockQuantity) ?? 0
                 })
-                .Where(x => x.TotalCurrentStoreQuantity <= x.MinStockLevel) 
+                .Where(x => x.TotalCurrentStockQuantity <= x.MinStockLevel) 
                 .ToListAsync();
 
             var targetDate = DateTime.Now.AddDays(7);
             var expiringItems = await _context.GRNDetails
                 .Include(g => g.Product)
-                .Where(g => g.CurrentStoreQuantity > 0 && 
+                .Where(g => g.CurrentStockQuantity > 0 && 
                             g.ExpiryDate.HasValue &&      
                             g.ExpiryDate.Value.Date <= targetDate.Date) 
                 .OrderBy(g => g.ExpiryDate)

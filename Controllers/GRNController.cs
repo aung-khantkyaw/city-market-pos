@@ -69,13 +69,13 @@ namespace CityMarketPOS.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(int poId, List<int> ProductId, List<int> ReceivedQty, List<DateTime?> ExpiryDate, List<decimal> SellingPrice, List<string> CodeType, List<string> CodePrefix, List<string> CodeValue, string Remarks)
+        public async Task<IActionResult> Create(int poId, List<int> ProductId, List<int> ReceivedQty, List<DateTime?> ExpiryDate, List<decimal> SellingPrice, string Remarks)
         {
             string finalRemarks = string.IsNullOrWhiteSpace(Remarks) ? "-" : Remarks;
 
-            var poExists = await _context.PurchaseOrders.AnyAsync(p => p.Id == poId); 
+            var poExists = await _context.PurchaseOrders.AnyAsync(p => p.Id == poId);
 
-            if (!poExists) return NotFound(); 
+            if (!poExists) return NotFound();
 
             var user = await _userManager.GetUserAsync(User);
             string userId = user?.Id ?? "System";
@@ -88,8 +88,8 @@ namespace CityMarketPOS.Controllers
                 ReceivedByUserId = userId
             };
 
-            // 'po' အစား 'poId' ကိုပဲ ပို့လိုက်ပါ
-            await _grnRepo.ConfirmGRNAndUpdateStockAsync(grn, ProductId, ReceivedQty, ExpiryDate, SellingPrice, CodeType, CodePrefix, CodeValue, poId);
+            // Updated Repository Call: removed code inputs
+            await _grnRepo.ConfirmGRNAndUpdateStockAsync(grn, ProductId, ReceivedQty, ExpiryDate, SellingPrice, poId);
 
             return RedirectToAction(nameof(Index));
         }

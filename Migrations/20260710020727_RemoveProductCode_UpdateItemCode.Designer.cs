@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CityMarketPOS.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260710020727_RemoveProductCode_UpdateItemCode")]
+    partial class RemoveProductCode_UpdateItemCode
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -164,6 +167,9 @@ namespace CityMarketPOS.Migrations
                     b.Property<int>("CurrentStockQuantity")
                         .HasColumnType("int");
 
+                    b.Property<int>("CurrentStoreQuantity")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("ExpiryDate")
                         .HasColumnType("datetime2");
 
@@ -187,6 +193,9 @@ namespace CityMarketPOS.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("StockQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StoreQuantity")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -295,6 +304,33 @@ namespace CityMarketPOS.Migrations
                     b.HasIndex("PurchaseOrderId");
 
                     b.ToTable("PurchaseOrderDetails");
+                });
+
+            modelBuilder.Entity("CityMarketPOS.Models.StockTransferLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("GRNDetailId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("TransferDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TransferQuantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GRNDetailId");
+
+                    b.ToTable("StockTransferLogs");
                 });
 
             modelBuilder.Entity("CityMarketPOS.Models.Supplier", b =>
@@ -579,6 +615,17 @@ namespace CityMarketPOS.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("PurchaseOrder");
+                });
+
+            modelBuilder.Entity("CityMarketPOS.Models.StockTransferLog", b =>
+                {
+                    b.HasOne("CityMarketPOS.Models.GRNDetail", "GRNDetail")
+                        .WithMany()
+                        .HasForeignKey("GRNDetailId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("GRNDetail");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

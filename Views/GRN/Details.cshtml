@@ -58,9 +58,9 @@
                                     <td class="font-weight-bold">@detail.Product.Name</td>
 
                                     <td class="text-center">
-                                        @if (!string.IsNullOrWhiteSpace(detail.ProductCode))
+                                        @if (!string.IsNullOrWhiteSpace(detail.ItemCode))
                                         {
-                                            <span class="badge badge-info" title="Barcode"><i class="fas fa-barcode"></i> @detail.ProductCode</span>
+                                            <span class="badge badge-info" title="Barcode"><i class="fas fa-barcode"></i> @detail.ItemCode</span>
                                         }
                                         else if (!string.IsNullOrWhiteSpace(detail.ItemCode))
                                         {

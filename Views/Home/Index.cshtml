@@ -23,7 +23,7 @@
                                     <tr>
                                         <td><strong>@p.ProductName</strong></td>
                                         <td class="text-center">
-                                            <span class="badge badge-danger" style="font-size: 14px;">@p.TotalCurrentStoreQuantity</span>
+                                            <span class="badge badge-danger" style="font-size: 14px;">@p.TotalCurrentStockQuantity</span>
                                         </td>
                                         <td class="text-center text-muted">@p.MinStockLevel</td>
                                     </tr>
@@ -57,7 +57,7 @@
 
                                     <tr>
                                         <td><strong>@g.Product.Name</strong></td>
-                                        <td class="text-center">@g.CurrentStoreQuantity</td>
+                                        <td class="text-center">@g.CurrentStockQuantity</td>
                                         <td class="text-center">
                                             @if (isExpired)
                                             {
