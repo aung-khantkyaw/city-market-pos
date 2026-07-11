@@ -33,11 +33,49 @@
                 <textarea asp-for="Address" class="form-control" rows="2"></textarea>
             </div>
 
-            <div class="col-md-12 form-group">
-                <label class="font-weight-bold text-primary">Supply Products (Select Multiple)</label>
-                <select name="selectedProductIds" class="form-control" asp-items="ViewBag.Products" multiple="multiple" style="height: 120px;">
-                </select>
-                <small class="form-text text-muted">Windows တွင် Ctrl ကိုဖိပြီး Product များကို တစ်ခုထက်မက ရွေးချယ်နိုင်ပါသည်။</small>
+            <div class="col-md-12 form-group border-top pt-3 mt-2">
+                <label class="font-weight-bold text-primary mb-3">Supply Products Setup</label>
+
+                <div class="row">
+                    <div class="col-md-5">
+                        <label class="text-muted"><i class="fas fa-filter"></i> 1. Filter by Category</label>
+                        <select id="categoryFilter" class="form-control custom-select">
+                            <option value="all">-- All Categories --</option>
+                            @if (ViewBag.Categories != null)
+                            {
+                                foreach (var cat in ViewBag.Categories as IEnumerable<CityMarketPOS.Models.Category>)
+                                {
+                                    <option value="@cat.Id">@cat.Name</option>
+                                }
+                            }
+                        </select>
+                        <small class="form-text text-muted mt-2">Category ပြောင်းရွေးသော်လည်း ရွေးချယ်ထားသော Product များ မပျောက်ပါ။</small>
+                    </div>
+
+                    <div class="col-md-7">
+                        <label class="text-muted"><i class="fas fa-check-square"></i> 2. Select Products</label>
+                        <div id="productContainer" class="border rounded p-3" style="height: 220px; overflow-y: auto; background-color: #f8f9fa;">
+                            @{
+                                var selectedIds = ViewBag.SelectedProducts as int[] ?? new int[0];
+                                var products = ViewBag.Products as IEnumerable<CityMarketPOS.Models.Product>;
+                            }
+
+                            @if (products != null)
+                            {
+                                foreach (var prod in products)
+                                {
+                                    bool isChecked = selectedIds.Contains(prod.Id);
+                                    <div class="custom-control custom-checkbox product-item mb-2" data-category="@prod.CategoryId">
+                                        <input type="checkbox" class="custom-control-input" name="selectedProductIds" value="@prod.Id" id="prod_@prod.Id" @(isChecked ? "checked" : "")>
+                                        <label class="custom-control-label" for="prod_@prod.Id" style="cursor: pointer;">
+                                            @prod.Name
+                                        </label>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -46,3 +84,18 @@
         <button type="submit" class="btn btn-primary">Save Supplier</button>
     </div>
 </form>
+
+<script>
+    $(document).ready(function () {
+        $('#categoryFilter').on('change', function () {
+            var selectedCat = $(this).val();
+
+            if (selectedCat === 'all') {
+                $('.product-item').fadeIn(200);
+            } else {
+                $('.product-item').hide();
+                $('.product-item[data-category="' + selectedCat + '"]').fadeIn(200);
+            }
+        });
+    });
+</script>

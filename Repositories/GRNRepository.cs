@@ -86,8 +86,9 @@ namespace CityMarketPOS.Repositories
                         decimal pPrice = poItem.UnitPrice;
                         string categoryShortName = poItem.Product?.Category?.ShortName ?? "UNK";
                         int productId = productIds[i];
+                        string date = DateTime.Now.ToString("yyMMddHHmm");
 
-                        string generatedItemCode = $"{categoryShortName}{productId}{supplierId}";
+                        string generatedItemCode = $"{categoryShortName}{productId}{supplierId}{date}";
 
                         grn.GRNDetails.Add(new GRNDetail
                         {

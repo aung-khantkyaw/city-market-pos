@@ -3,6 +3,7 @@ using CityMarketPOS.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -13,11 +14,13 @@ namespace CityMarketPOS.Controllers
     {
         private readonly ISupplierRepository _supplierRepo;
         private readonly IProductRepository _productRepo;
+        private readonly ApplicationDbContext _context;
 
-        public SupplierController(ISupplierRepository supplierRepo, IProductRepository productRepo)
+        public SupplierController(ISupplierRepository supplierRepo, IProductRepository productRepo, ApplicationDbContext context)
         {
             _supplierRepo = supplierRepo;
             _productRepo = productRepo;
+            _context = context;
         }
 
         public async Task<IActionResult> Index()
@@ -27,7 +30,10 @@ namespace CityMarketPOS.Controllers
 
         public async Task<IActionResult> Create()
         {
-            ViewBag.Products = new MultiSelectList(await _productRepo.GetAllAsync(), "Id", "Name");
+            ViewBag.Categories = await _context.Categories.ToListAsync();
+            ViewBag.Products = await _productRepo.GetAllAsync();
+            ViewBag.SelectedProducts = new int[0]; 
+
             return PartialView("_CreatePartial");
         }
 
@@ -57,8 +63,11 @@ namespace CityMarketPOS.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewBag.Products = new MultiSelectList(await _productRepo.GetAllAsync(), "Id", "Name", selectedProductIds);
-            return PartialView("_CreatePartial", supplier); 
+            ViewBag.Categories = await _context.Categories.ToListAsync();
+            ViewBag.Products = await _productRepo.GetAllAsync();
+            ViewBag.SelectedProducts = selectedProductIds ?? new int[0];
+
+            return PartialView("_CreatePartial", supplier);
         }
 
         public async Task<IActionResult> Edit(int id)
@@ -66,10 +75,11 @@ namespace CityMarketPOS.Controllers
             var supplier = await _supplierRepo.GetByIdAsync(id);
             if (supplier == null) return NotFound();
 
-            var selectedProductIds = supplier.Products.Select(p => p.Id).ToArray();
-            ViewBag.Products = new MultiSelectList(await _productRepo.GetAllAsync(), "Id", "Name", selectedProductIds);
+            ViewBag.Categories = await _context.Categories.ToListAsync();
+            ViewBag.Products = await _productRepo.GetAllAsync();
+            ViewBag.SelectedProducts = supplier.Products.Select(p => p.Id).ToArray();
 
-            return PartialView("_EditPartial", supplier); 
+            return PartialView("_EditPartial", supplier);
         }
 
         [HttpPost]
@@ -111,8 +121,11 @@ namespace CityMarketPOS.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewBag.Products = new MultiSelectList(await _productRepo.GetAllAsync(), "Id", "Name", selectedProductIds);
-            return PartialView("_EditPartial", supplier); 
+            ViewBag.Categories = await _context.Categories.ToListAsync();
+            ViewBag.Products = await _productRepo.GetAllAsync();
+            ViewBag.SelectedProducts = selectedProductIds ?? new int[0];
+
+            return PartialView("_EditPartial", supplier);
         }
 
         [HttpPost]
