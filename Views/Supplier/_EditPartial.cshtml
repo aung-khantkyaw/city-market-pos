@@ -23,8 +23,41 @@
                 <input asp-for="ContactPerson" class="form-control" />
             </div>
             <div class="col-md-6 form-group">
-                <label asp-for="Phone">Phone</label>
-                <input asp-for="Phone" class="form-control" />
+                <label>Phone Numbers</label>
+                <div id="phoneContainer">
+                    @{
+                        var phones = string.IsNullOrEmpty(Model.Phone) ? new string[0] : Model.Phone.Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+                        if (phones.Length == 0)
+                        {
+                            <div class="input-group mb-2 phone-input-group">
+                                <input type="text" name="phoneNumbers" class="form-control" placeholder="Phone 1" />
+                                <div class="input-group-append">
+                                    <button type="button" class="btn btn-success add-phone"><i class="fas fa-plus"></i></button>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            for (int i = 0; i < phones.Length; i++)
+                            {
+                                <div class="input-group mb-2 phone-input-group">
+                                    <input type="text" name="phoneNumbers" class="form-control" value="@phones[i].Trim()" />
+                                    <div class="input-group-append">
+                                        @if (i == 0)
+                                        {
+                                            <button type="button" class="btn btn-success add-phone"><i class="fas fa-plus"></i></button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-danger remove-phone"><i class="fas fa-minus"></i></button>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        }
+                    }
+                </div>
             </div>
             <div class="col-md-6 form-group">
                 <label asp-for="Email">Email</label>
@@ -100,4 +133,20 @@
             }
         });
     });
+
+        $(document).off('click', '.add-phone').on('click', '.add-phone', function () {
+            var newField = `
+                <div class="input-group mb-2 phone-input-group">
+                    <input type="text" name="phoneNumbers" class="form-control" placeholder="Additional Phone" />
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-danger remove-phone"><i class="fas fa-minus"></i></button>
+                    </div>
+                </div>
+            `;
+            $('#phoneContainer').append(newField);
+        });
+
+        $(document).off('click', '.remove-phone').on('click', '.remove-phone', function () {
+            $(this).closest('.phone-input-group').remove();
+        });
 </script>

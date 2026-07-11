@@ -39,12 +39,18 @@ namespace CityMarketPOS.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Supplier supplier, int[] selectedProductIds)
+        public async Task<IActionResult> Create(Supplier supplier, int[] selectedProductIds, List<string> phoneNumbers)
         {
             ModelState.Remove("Products");
+            ModelState.Remove("Phone");
 
             if (ModelState.IsValid)
             {
+                if (phoneNumbers != null && phoneNumbers.Any())
+                {
+                    supplier.Phone = string.Join(", ", phoneNumbers.Where(p => !string.IsNullOrWhiteSpace(p)));
+                }
+
                 if (selectedProductIds != null)
                 {
                     foreach (var id in selectedProductIds)
@@ -84,11 +90,12 @@ namespace CityMarketPOS.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Supplier supplier, int[] selectedProductIds)
+        public async Task<IActionResult> Edit(int id, Supplier supplier, int[] selectedProductIds, List<string> phoneNumbers)
         {
             if (id != supplier.Id) return NotFound();
 
             ModelState.Remove("Products");
+            ModelState.Remove("Phone");
 
             if (ModelState.IsValid)
             {
@@ -97,9 +104,17 @@ namespace CityMarketPOS.Controllers
 
                 existingSupplier.Name = supplier.Name;
                 existingSupplier.ContactPerson = supplier.ContactPerson;
-                existingSupplier.Phone = supplier.Phone;
                 existingSupplier.Email = supplier.Email;
                 existingSupplier.Address = supplier.Address;
+
+                if (phoneNumbers != null && phoneNumbers.Any())
+                {
+                    existingSupplier.Phone = string.Join(", ", phoneNumbers.Where(p => !string.IsNullOrWhiteSpace(p)));
+                }
+                else
+                {
+                    existingSupplier.Phone = null;
+                }
 
                 existingSupplier.Products.Clear();
 

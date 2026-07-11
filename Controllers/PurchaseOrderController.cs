@@ -30,14 +30,37 @@ namespace CityMarketPOS.Controllers
 
 
         [HttpGet]
-        public IActionResult GetProductsBySupplier(int supplierId)
+        public IActionResult GetCategoriesBySupplier(int supplierId)
         {
-            var products = _context.Products
-                .Where(p => p.Suppliers.Any(s => s.Id == supplierId)) 
-                .Select(p => new { value = p.Id, text = p.Name })
+            var categories = _context.Products
+                .Where(p => p.Suppliers.Any(s => s.Id == supplierId) && p.Category != null)
+                .Select(p => new { value = p.Category.Id, text = p.Category.Name })
+                .Distinct()
                 .ToList();
 
-            return Json(products);
+            var uniqueCategories = categories
+                .GroupBy(c => c.value)
+                .Select(g => g.First())
+                .ToList();
+
+            return Json(uniqueCategories);
+        }
+
+        [HttpGet]
+        public IActionResult GetProductsBySupplierAndCategory(int supplierId, int categoryId)
+        {
+            var products = _context.Products
+                .Where(p => p.Suppliers.Any(s => s.Id == supplierId) && p.CategoryId == categoryId)
+                .Select(p => new { value = p.Id, text = p.Name })
+                .Distinct()
+                .ToList();
+
+            var uniqueProducts = products
+                .GroupBy(p => p.value)
+                .Select(g => g.First())
+                .ToList();
+
+            return Json(uniqueProducts);
         }
 
         public IActionResult Create()
@@ -48,7 +71,6 @@ namespace CityMarketPOS.Controllers
             };
 
             ViewBag.SupplierList = new SelectList(_context.Suppliers, "Id", "Name");
-            ViewBag.ProductList = new SelectList(_context.Products, "Id", "Name");
 
             return PartialView("_CreatePartial", model);
         }
