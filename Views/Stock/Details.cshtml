@@ -1,0 +1,185 @@
+@model CityMarketPOS.Models.GRNDetail
+@{
+    ViewData["Title"] = "Stock Details";
+}
+
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-8">
+                <h1>
+                    <i class="fas fa-box mr-2 text-primary"></i> Stock Details
+                </h1>
+            </div>
+            <div class="col-sm-4">
+                <a asp-action="Index" class="btn btn-outline-primary float-right">
+                    <i class="fas fa-arrow-left mr-1"></i> Back to Stock List
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Product Info Card -->
+            <div class="col-md-6">
+                <div class="card card-outline card-primary shadow-sm">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-box mr-1"></i> Product Information
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered table-striped">
+                            <tr>
+                                <th style="width: 40%">Item Code</th>
+                                <td><span class="badge badge-secondary">@Model.ItemCode</span></td>
+                            </tr>
+                            <tr>
+                                <th>Product Name</th>
+                                <td><strong>@Model.Product.Name</strong></td>
+                            </tr>
+                            <tr>
+                                <th>Category</th>
+                                <td>@Model.Product.Category?.Name</td>
+                            </tr>
+                            <tr>
+                                <th>Unit of Measure</th>
+                                <td>@Model.Product.UOM?.Name</td>
+                            </tr>
+                            <tr>
+                                <th>Minimum Stock Level</th>
+                                <td>@Model.Product.MinStockLevel</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stock Info Card -->
+            <div class="col-md-6">
+                <div class="card card-outline card-success shadow-sm">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-warehouse mr-1"></i> Stock Information
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered table-striped">
+                            <tr>
+                                <th style="width: 40%">Received Quantity</th>
+                                <td class="text-center font-weight-bold">@Model.ReceivedQuantity</td>
+                            </tr>
+                            <tr>
+                                <th>Stock Quantity</th>
+                                <td class="text-center font-weight-bold">@Model.StockQuantity</td>
+                            </tr>
+                            <tr>
+                                <th>Current Stock Quantity</th>
+                                <td class="text-center">
+                                    <span class="badge @(Model.CurrentStockQuantity <= Model.Product.MinStockLevel ? "badge-danger" : "badge-success") font-weight-bold" style="font-size: 1.1em;">
+                                        @Model.CurrentStockQuantity
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Stock Status</th>
+                                <td class="text-center">
+                                    @if (Model.CurrentStockQuantity <= Model.Product.MinStockLevel)
+                                    {
+                                        <span class="badge badge-danger">Low Stock</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-success">In Stock</span>
+                                    }
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Price Info Card -->
+            <div class="col-md-6">
+                <div class="card card-outline card-info shadow-sm">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-dollar-sign mr-1"></i> Price Information
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered table-striped">
+                            <tr>
+                                <th style="width: 40%">Purchase Price</th>
+                                <td class="font-weight-bold">@Model.PurchasePrice.ToString("F2")</td>
+                            </tr>
+                            <tr>
+                                <th>Selling Price</th>
+                                <td class="font-weight-bold text-success">@Model.SellingPrice.ToString("F2")</td>
+                            </tr>
+                            <tr>
+                                <th>Profit Margin</th>
+                                <td class="font-weight-bold">
+                                    @{
+                                        var margin = Model.SellingPrice > 0 ? ((Model.SellingPrice - Model.PurchasePrice) / Model.SellingPrice * 100) : 0;
+                                    }
+                                    @margin.ToString("F2")%
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GRN Info Card -->
+            <div class="col-md-6">
+                <div class="card card-outline card-warning shadow-sm">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-file-invoice mr-1"></i> GRN Information
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered table-striped">
+                            <tr>
+                                <th style="width: 40%">GRN Number</th>
+                                <td><span class="badge badge-info">@Model.GRN.GRNNumber</span></td>
+                            </tr>
+                            <tr>
+                                <th>PO Number</th>
+                                <td><strong>@Model.GRN.PurchaseOrder?.PONumber</strong></td>
+                            </tr>
+                            <tr>
+                                <th>Received Date</th>
+                                <td>@Model.GRN.ReceivedDate.ToString("dd MMM yyyy")</td>
+                            </tr>
+                            <tr>
+                                <th>Expiry Date</th>
+                                <td>
+                                    @if (Model.ExpiryDate.HasValue)
+                                    {
+                                        var daysUntilExpiry = (Model.ExpiryDate.Value - DateTime.Now).Days;
+                                        <span class="badge @(daysUntilExpiry <= 30 ? "badge-warning" : "badge-success")">
+                                            @Model.ExpiryDate.Value.ToString("dd MMM yyyy")
+                                        </span>
+                                        <br />
+                                        <small class="text-muted">(@daysUntilExpiry days remaining)</small>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">N/A</span>
+                                    }
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

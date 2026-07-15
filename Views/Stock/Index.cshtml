@@ -1,0 +1,156 @@
+@model IEnumerable<CityMarketPOS.Models.GRNDetail>
+@{
+    ViewData["Title"] = "Stock Tracking";
+}
+
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-8">
+                <h1>
+                    <i class="fas fa-boxes mr-2 text-primary"></i> Stock Tracking
+                </h1>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <!-- Filter Card -->
+        <div class="card card-outline card-primary shadow-sm mb-3">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-filter mr-1"></i> Filter Stock
+                </h3>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <form asp-action="Index" method="get" class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Search</label>
+                            <input type="text" name="search" class="form-control" value="@ViewBag.Search" placeholder="Product name or item code..." />
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Category</label>
+                            <select name="categoryId" class="form-control">
+                                <option value="">All Categories</option>
+                                @if (ViewBag.Categories != null)
+                                {
+                                    @foreach (var cat in ViewBag.Categories)
+                                    {
+                                        <option value="@cat.Id" selected="@(ViewBag.CategoryId == cat.Id)">@cat.Name</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <div class="custom-control custom-checkbox mt-2">
+                                <input type="checkbox" name="lowStock" class="custom-control-input" id="lowStock" value="true" @(ViewBag.LowStock ? "checked" : "") />
+                                <label class="custom-control-label" for="lowStock">Low Stock Only</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <div class="custom-control custom-checkbox mt-2">
+                                <input type="checkbox" name="expiringSoon" class="custom-control-input" id="expiringSoon" value="true" @(ViewBag.ExpiringSoon ? "checked" : "") />
+                                <label class="custom-control-label" for="expiringSoon">Expiring Soon</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <button type="submit" class="btn btn-primary btn-block">
+                                <i class="fas fa-search mr-1"></i> Filter
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Stock Table -->
+        <div class="card card-outline card-primary shadow-sm">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-list mr-1"></i> Stock List
+                </h3>
+                <div class="card-tools">
+                    <span class="badge badge-info">@Model.Count() Items</span>
+                </div>
+            </div>
+            <div class="card-body p-0 table-responsive">
+                <table class="table table-hover table-striped align-middle">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Item Code</th>
+                            <th>Product Name</th>
+                            <th>Category</th>
+                            <th class="text-center">Received Qty</th>
+                            <th class="text-center">Stock Qty</th>
+                            <th class="text-center">Current Stock</th>
+                            <th class="text-center">Min Stock Level</th>
+                            <th>Purchase Price</th>
+                            <th>Selling Price</th>
+                            <th>Expiry Date</th>
+                            <th>GRN Number</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr class="@(item.CurrentStockQuantity <= item.Product.MinStockLevel ? "table-warning" : "")">
+                                <td><span class="badge badge-secondary">@item.ItemCode</span></td>
+                                <td><strong>@item.Product.Name</strong></td>
+                                <td>@item.Product.Category?.Name</td>
+                                <td class="text-center">@item.ReceivedQuantity</td>
+                                <td class="text-center">@item.StockQuantity</td>
+                                <td class="text-center">
+                                    <span class="badge @(item.CurrentStockQuantity <= item.Product.MinStockLevel ? "badge-danger" : "badge-success")">
+                                        @item.CurrentStockQuantity
+                                    </span>
+                                </td>
+                                <td class="text-center">@item.Product.MinStockLevel</td>
+                                <td>@item.PurchasePrice.ToString("F2")</td>
+                                <td>@item.SellingPrice.ToString("F2")</td>
+                                <td>
+                                    @if (item.ExpiryDate.HasValue)
+                                    {
+                                        var daysUntilExpiry = (item.ExpiryDate.Value - DateTime.Now).Days;
+                                        <span class="badge @(daysUntilExpiry <= 30 ? "badge-warning" : "badge-success")">
+                                            @item.ExpiryDate.Value.ToString("dd MMM yyyy")
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">N/A</span>
+                                    }
+                                </td>
+                                <td><span class="badge badge-info">@item.GRN.GRNNumber</span></td>
+                                <td class="text-center">
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary shadow-sm">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>

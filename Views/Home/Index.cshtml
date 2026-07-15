@@ -2,83 +2,261 @@
     ViewData["Title"] = "Dashboard";
 }
 
-<section class="content">
-    <div class="container-fluid mt-3">
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card card-danger shadow">
-                    <div class="card-header"><h3 class="card-title"><i class="fas fa-exclamation-triangle"></i> Low Stock (Reorder)</h3></div>
-                    <div class="card-body p-0 table-responsive">
-                        <table class="table table-striped align-middle">
-                            <thead>
-                                <tr>
-                                    <th>Product Name</th>
-                                    <th class="text-center">Current Stock</th>
-                                    <th class="text-center">Min Level</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var p in ViewBag.LowStock as List<CityMarketPOS.Models.ViewModels.LowStockViewModel>)
-                                {
-                                    <tr>
-                                        <td><strong>@p.ProductName</strong></td>
-                                        <td class="text-center">
-                                            <span class="badge badge-danger" style="font-size: 14px;">@p.TotalCurrentStockQuantity</span>
-                                        </td>
-                                        <td class="text-center text-muted">@p.MinStockLevel</td>
-                                    </tr>
-                                }
-                                @if (ViewBag.LowStock == null || ((List<CityMarketPOS.Models.ViewModels.LowStockViewModel>)ViewBag.LowStock).Count == 0)
-                                {
-                                    <tr><td colspan="3" class="text-center text-muted py-3">All stocks are sufficient.</td></tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-8">
+                <h1>
+                    <i class="fas fa-tachometer-alt mr-2 text-primary"></i> Dashboard
+                </h1>
             </div>
-
-            <div class="col-md-6">
-                <div class="card card-warning shadow">
-                    <div class="card-header"><h3 class="card-title text-dark"><i class="fas fa-calendar-times"></i> Expiring Items (Next 7 Days)</h3></div>
-                    <div class="card-body p-0 table-responsive">
-                        <table class="table table-striped align-middle">
-                            <thead>
-                                <tr>
-                                    <th>Product Name</th>
-                                    <th class="text-center">Qty</th>
-                                    <th class="text-center">Expiry Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var g in ViewBag.Expiring as List<CityMarketPOS.Models.GRNDetail>)
-                                {
-                                    bool isExpired = g.ExpiryDate.Value.Date < DateTime.Now.Date;
-
-                                    <tr>
-                                        <td><strong>@g.Product.Name</strong></td>
-                                        <td class="text-center">@g.CurrentStockQuantity</td>
-                                        <td class="text-center">
-                                            @if (isExpired)
-                                            {
-                                                <span class="badge badge-danger">Expired on @g.ExpiryDate?.ToString("dd MMM yyyy")</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge badge-warning text-dark">@g.ExpiryDate?.ToString("dd MMM yyyy")</span>
-                                            }
-                                        </td>
-                                    </tr>
-                                }
-                                @if (ViewBag.Expiring == null || ((List<CityMarketPOS.Models.GRNDetail>)ViewBag.Expiring).Count == 0)
-                                {
-                                    <tr><td colspan="3" class="text-center text-muted py-3">No expiring items in the next 7 days.</td></tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+            <div class="col-sm-4">
+                <span class="badge badge-info float-right mt-2">
+                    @(User.IsInRole("Manager") ? "Manager" : User.IsInRole("Inventory") ? "Inventory" : "Cashier")
+                </span>
             </div>
         </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid mt-3">
+        
+        @if (User.IsInRole("Inventory") || User.IsInRole("Manager"))
+        {
+            <!-- Stats Cards for Inventory and Manager -->
+            <div class="row">
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-info">
+                        <div class="inner">
+                            <h3>@ViewBag.TotalCategories</h3>
+                            <p>Total Categories</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-tags"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-success">
+                        <div class="inner">
+                            <h3>@ViewBag.TotalProducts</h3>
+                            <p>Total Products</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-box"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-warning">
+                        <div class="inner">
+                            <h3>@ViewBag.TotalSuppliers</h3>
+                            <p>Total Suppliers</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-danger">
+                        <div class="inner">
+                            <h3>@ViewBag.LowStockCount</h3>
+                            <p>Low Stock Items</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Manager Analytics -->
+            @if (User.IsInRole("Manager"))
+            {
+                <div class="row mt-3">
+                    <div class="col-lg-3 col-6">
+                        <div class="small-box bg-primary">
+                            <div class="inner">
+                                <h3>@ViewBag.TotalGRNs</h3>
+                                <p>Total GRNs</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fas fa-file-invoice"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-6">
+                        <div class="small-box bg-secondary">
+                            <div class="inner">
+                                <h3>@ViewBag.TotalPOs</h3>
+                                <p>Total Purchase Orders</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-6">
+                        <div class="small-box bg-teal">
+                            <div class="inner">
+                                <h3>@ViewBag.TotalStockQuantity</h3>
+                                <p>Total Stock Qty</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fas fa-warehouse"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-6">
+                        <div class="small-box bg-indigo">
+                            <div class="inner">
+                                <h3>@ViewBag.TotalStockValue.ToString("F2")</h3>
+                                <p>Stock Value ($)</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+
+        <!-- Alerts Section - Common for Inventory and Manager -->
+        @if (User.IsInRole("Inventory") || User.IsInRole("Manager"))
+        {
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <div class="card card-danger shadow">
+                        <div class="card-header"><h3 class="card-title"><i class="fas fa-exclamation-triangle"></i> Low Stock (Reorder)</h3></div>
+                        <div class="card-body p-0 table-responsive">
+                            <table class="table table-striped align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Product Name</th>
+                                        <th class="text-center">Current Stock</th>
+                                        <th class="text-center">Min Level</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var p in ViewBag.LowStock as List<CityMarketPOS.Models.ViewModels.LowStockViewModel>)
+                                    {
+                                        <tr>
+                                            <td><strong>@p.ProductName</strong></td>
+                                            <td class="text-center">
+                                                <span class="badge badge-danger" style="font-size: 14px;">@p.TotalCurrentStockQuantity</span>
+                                            </td>
+                                            <td class="text-center text-muted">@p.MinStockLevel</td>
+                                        </tr>
+                                    }
+                                    @if (ViewBag.LowStock == null || ((List<CityMarketPOS.Models.ViewModels.LowStockViewModel>)ViewBag.LowStock).Count == 0)
+                                    {
+                                        <tr><td colspan="3" class="text-center text-muted py-3">All stocks are sufficient.</td></tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card card-warning shadow">
+                        <div class="card-header"><h3 class="card-title text-dark"><i class="fas fa-calendar-times"></i> Expiring Items (Next 7 Days)</h3></div>
+                        <div class="card-body p-0 table-responsive">
+                            <table class="table table-striped align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Product Name</th>
+                                        <th class="text-center">Qty</th>
+                                        <th class="text-center">Expiry Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var g in ViewBag.Expiring as List<CityMarketPOS.Models.GRNDetail>)
+                                    {
+                                        bool isExpired = g.ExpiryDate.Value.Date < DateTime.Now.Date;
+
+                                        <tr>
+                                            <td><strong>@g.Product.Name</strong></td>
+                                            <td class="text-center">@g.CurrentStockQuantity</td>
+                                            <td class="text-center">
+                                                @if (isExpired)
+                                                {
+                                                    <span class="badge badge-danger">Expired on @g.ExpiryDate?.ToString("dd MMM yyyy")</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge badge-warning text-dark">@g.ExpiryDate?.ToString("dd MMM yyyy")</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                    @if (ViewBag.Expiring == null || ((List<CityMarketPOS.Models.GRNDetail>)ViewBag.Expiring).Count == 0)
+                                    {
+                                        <tr><td colspan="3" class="text-center text-muted py-3">No expiring items in the next 7 days.</td></tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Manager Only: Recent Activity -->
+        @if (User.IsInRole("Manager"))
+        {
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <div class="card card-primary shadow">
+                        <div class="card-header"><h3 class="card-title"><i class="fas fa-history"></i> Recent GRN Activity</h3></div>
+                        <div class="card-body p-0 table-responsive">
+                            <table class="table table-striped align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>GRN Number</th>
+                                        <th>PO Number</th>
+                                        <th>Received Date</th>
+                                        <th>Remarks</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var grn in ViewBag.RecentGRNs as List<CityMarketPOS.Models.GRN>)
+                                    {
+                                        <tr>
+                                            <td><span class="badge badge-info">@grn.GRNNumber</span></td>
+                                            <td><strong>@(grn.PurchaseOrder?.PONumber ?? "N/A")</strong></td>
+                                            <td>@grn.ReceivedDate.ToString("dd MMM yyyy")</td>
+                                            <td>@(string.IsNullOrWhiteSpace(grn.Remarks) ? "-" : grn.Remarks)</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Cashier Role: Simple Dashboard -->
+        @if (User.IsInRole("Cashier"))
+        {
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card card-success shadow">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-cash-register"></i> POS Terminal</h3>
+                        </div>
+                        <div class="card-body">
+                            <h4 class="text-center">Welcome to the POS Terminal</h4>
+                            <p class="text-center text-muted">Select a menu option from the sidebar to begin processing sales.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
     </div>
 </section>
