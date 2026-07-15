@@ -1,6 +1,8 @@
+using CityMarketPOS.Models;
 using CityMarketPOS.Models.ViewModels;
 using CityMarketPOS.Repositories;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
@@ -22,11 +24,13 @@ namespace CityMarketPOS.Controllers
 
         private readonly IGRNRepository _grnRepo;
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public HomeController(IGRNRepository grnRepo, ApplicationDbContext context)
+        public HomeController(IGRNRepository grnRepo, ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _grnRepo = grnRepo;
             _context = context;
+            _userManager = userManager;
         }
 
         public async Task<IActionResult> Index()
@@ -88,6 +92,26 @@ namespace CityMarketPOS.Controllers
                     .OrderByDescending(g => g.ReceivedDate)
                     .Take(5)
                     .ToListAsync();
+            }
+
+            // Cashier role specific data - POS session management
+            if (User.IsInRole("Cashier"))
+            {
+                var userId = _userManager.GetUserId(User);
+                var activeSession = await _context.POSSessions
+                    .Include(s => s.Counter)
+                    .FirstOrDefaultAsync(s => s.UserId == userId && s.Status == "Active");
+
+                ViewBag.ActiveSession = activeSession;
+
+                // Get available counters if no active session
+                if (activeSession == null)
+                {
+                    var availableCounters = await _context.Counters
+                        .Where(c => c.Status == "Active")
+                        .ToListAsync();
+                    ViewBag.Counters = availableCounters;
+                }
             }
 
             return View();

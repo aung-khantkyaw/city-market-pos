@@ -1,0 +1,86 @@
+@model IEnumerable<CityMarketPOS.Models.Counter>
+
+@{
+    ViewData["Title"] = "Counters";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Counters</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Home">Home</a></li>
+                    <li class="breadcrumb-item active">Counters</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content">
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Counter Management</h3>
+                <div class="card-tools">
+                    <a asp-action="Create" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus"></i> Add New Counter
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                            <th>Assigned User</th>
+                            <th>Created Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@item.Name</td>
+                                    <td>@item.Location</td>
+                                    <td>
+                                        <span class="badge badge-@(item.Status == "Active" ? "success" : item.Status == "Inactive" ? "secondary" : "warning")">
+                                            @item.Status
+                                        </span>
+                                    </td>
+                                    <td>@item.AssignedUserName</td>
+                                    <td>@item.CreatedDate.ToString("yyyy-MM-dd")</td>
+                                    <td>
+                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center">No counters found</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

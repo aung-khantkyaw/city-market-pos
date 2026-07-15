@@ -23,6 +23,9 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddScoped<IStockAdjustmentRepository, StockAdjustmentRepository>();
 builder.Services.AddScoped<IStockTakingRepository, StockTakingRepository>();
+builder.Services.AddScoped<ICounterRepository, CounterRepository>();
+builder.Services.AddScoped<IPOSSessionRepository, POSSessionRepository>();
+builder.Services.AddScoped<ISaleRepository, SaleRepository>();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -31,6 +34,13 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromHours(8);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
 var app = builder.Build();
 
@@ -47,6 +57,7 @@ using (var scope = app.Services.CreateScope())
         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
 
         await DbInitializer.SeedRolesAndAdminAsync(roleManager, userManager);
+        DbInitializer.SeedCounters(context);
     }
     catch (Exception ex)
     {
@@ -67,6 +78,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseSession();
 
 app.UseAuthentication();
 app.UseAuthorization();

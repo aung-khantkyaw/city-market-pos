@@ -1,0 +1,141 @@
+@{
+    ViewData["Title"] = "Today's Sales";
+    var session = ViewBag.Session as CityMarketPOS.Models.POSSession;
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Today's Sales</h1>
+                @if (session != null)
+                {
+                    <small class="text-muted">Counter: @session.Counter?.Name | Cashier: @session.UserName | Date: @ViewBag.Today.ToString("dd MMM yyyy")</small>
+                }
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Home">Home</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index" asp-controller="POSTerminal">POS Terminal</a></li>
+                    <li class="breadcrumb-item active">Today's Sales</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content">
+    <div class="container-fluid">
+        <!-- Summary Statistics -->
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3>@ViewBag.TotalSales</h3>
+                        <p>Total Sales</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>@ViewBag.TotalAmount.ToString("F2")</h3>
+                        <p>Total Revenue ($)</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3>@ViewBag.TotalItems</h3>
+                        <p>Total Items Sold</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-box"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="small-box bg-danger">
+                    <div class="inner">
+                        <h3>@ViewBag.TotalTax.ToString("F2")</h3>
+                        <p>Total Tax (5%)</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sales Table -->
+        <div class="card card-outline card-primary">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-list"></i> Sales Details</h3>
+                <div class="card-tools">
+                    <a asp-action="Index" asp-controller="POSTerminal" class="btn btn-sm btn-primary">
+                        <i class="fas fa-arrow-left"></i> Back to POS Terminal
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-0 table-responsive">
+                @if (ViewBag.Sales != null && ((List<CityMarketPOS.Models.Sale>)ViewBag.Sales).Any())
+                {
+                    <table class="table table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th>Sale #</th>
+                                <th>Time</th>
+                                <th>Items</th>
+                                <th>Subtotal</th>
+                                <th>Tax</th>
+                                <th>Discount</th>
+                                <th>Total</th>
+                                <th>Payment</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var sale in ViewBag.Sales as List<CityMarketPOS.Models.Sale>)
+                            {
+                                <tr>
+                                    <td><span class="badge badge-info">@sale.SaleNumber</span></td>
+                                    <td>@sale.SaleDate.ToString("HH:mm")</td>
+                                    <td>@sale.Details.Sum(d => d.Quantity)</td>
+                                    <td>@sale.Subtotal.ToString("F2")</td>
+                                    <td>@sale.Tax.ToString("F2")</td>
+                                    <td>@sale.Discount.ToString("F2")</td>
+                                    <td><strong>@sale.GrandTotal.ToString("F2")</strong></td>
+                                    <td><span class="badge badge-success">@sale.PaymentMethod</span></td>
+                                    <td><span class="badge badge-@(sale.Status == "Completed" ? "success" : "warning")">@sale.Status</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr class="bg-light">
+                                <td colspan="4" class="text-right"><strong>Totals:</strong></td>
+                                <td><strong>@ViewBag.TotalTax.ToString("F2")</strong></td>
+                                <td><strong>@ViewBag.TotalDiscount.ToString("F2")</strong></td>
+                                <td><strong class="text-success">@ViewBag.TotalAmount.ToString("F2")</strong></td>
+                                <td colspan="2"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-info m-3">
+                        <h5><i class="icon fas fa-info-circle"></i> No Sales Today</h5>
+                        No sales have been made today.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

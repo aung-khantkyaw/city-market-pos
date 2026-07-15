@@ -72,4 +72,53 @@ public static class DbInitializer
             }
         }
     }
+
+    public static void SeedCounters(ApplicationDbContext context)
+    {
+        if (!context.Counters.Any())
+        {
+            var counters = new[]
+            {
+                new Counter
+                {
+                    Name = "Counter 1",
+                    Location = "Main Entrance",
+                    Status = "Active",
+                    AssignedUserId = null,
+                    AssignedUserName = null,
+                    Description = "Main entrance counter",
+                    CreatedDate = DateTime.Now,
+                    CreatedByUserId = "System",
+                    CreatedByUserName = "System"
+                },
+                new Counter
+                {
+                    Name = "Counter 2",
+                    Location = "Back Entrance",
+                    Status = "Active",
+                    AssignedUserId = null,
+                    AssignedUserName = null,
+                    Description = "Back entrance counter",
+                    CreatedDate = DateTime.Now,
+                    CreatedByUserId = "System",
+                    CreatedByUserName = "System"
+                },
+                new Counter
+                {
+                    Name = "Counter 3",
+                    Location = "Express Lane",
+                    Status = "Active",
+                    AssignedUserId = null,
+                    AssignedUserName = null,
+                    Description = "Express checkout counter",
+                    CreatedDate = DateTime.Now,
+                    CreatedByUserId = "System",
+                    CreatedByUserName = "System"
+                }
+            };
+
+            context.Counters.AddRange(counters);
+            context.SaveChanges();
+        }
+    }
 }

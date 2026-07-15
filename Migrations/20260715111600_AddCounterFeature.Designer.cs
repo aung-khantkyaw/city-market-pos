@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CityMarketPOS.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260715111600_AddCounterFeature")]
+    partial class AddCounterFeature
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -312,53 +315,6 @@ namespace CityMarketPOS.Migrations
                     b.ToTable("GRNDetails");
                 });
 
-            modelBuilder.Entity("CityMarketPOS.Models.POSSession", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("ClosingBalance")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("CounterId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("EndTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<decimal>("OpeningBalance")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("StartTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("UserName")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CounterId");
-
-                    b.ToTable("POSSessions");
-                });
-
             modelBuilder.Entity("CityMarketPOS.Models.Product", b =>
                 {
                     b.Property<int>("Id")
@@ -456,121 +412,6 @@ namespace CityMarketPOS.Migrations
                     b.HasIndex("PurchaseOrderId");
 
                     b.ToTable("PurchaseOrderDetails");
-                });
-
-            modelBuilder.Entity("CityMarketPOS.Models.Sale", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("CardNumber")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("CashierId")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("CashierName")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<int>("CounterId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Discount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("GrandTotal")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<int>("POSSessionId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PaymentMethod")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<DateTime>("SaleDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("SaleNumber")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("Subtotal")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Tax")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Total")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CounterId");
-
-                    b.HasIndex("POSSessionId");
-
-                    b.ToTable("Sales");
-                });
-
-            modelBuilder.Entity("CityMarketPOS.Models.SaleDetail", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Discount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("GRNDetailId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("LineTotal")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SaleId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("TotalPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("GRNDetailId");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("SaleId");
-
-                    b.ToTable("SaleDetails");
                 });
 
             modelBuilder.Entity("CityMarketPOS.Models.StockAdjustment", b =>
@@ -934,17 +775,6 @@ namespace CityMarketPOS.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("CityMarketPOS.Models.POSSession", b =>
-                {
-                    b.HasOne("CityMarketPOS.Models.Counter", "Counter")
-                        .WithMany()
-                        .HasForeignKey("CounterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Counter");
-                });
-
             modelBuilder.Entity("CityMarketPOS.Models.Product", b =>
                 {
                     b.HasOne("CityMarketPOS.Models.Category", "Category")
@@ -992,52 +822,6 @@ namespace CityMarketPOS.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("PurchaseOrder");
-                });
-
-            modelBuilder.Entity("CityMarketPOS.Models.Sale", b =>
-                {
-                    b.HasOne("CityMarketPOS.Models.Counter", "Counter")
-                        .WithMany()
-                        .HasForeignKey("CounterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CityMarketPOS.Models.POSSession", "POSSession")
-                        .WithMany()
-                        .HasForeignKey("POSSessionId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Counter");
-
-                    b.Navigation("POSSession");
-                });
-
-            modelBuilder.Entity("CityMarketPOS.Models.SaleDetail", b =>
-                {
-                    b.HasOne("CityMarketPOS.Models.GRNDetail", "GRNDetail")
-                        .WithMany()
-                        .HasForeignKey("GRNDetailId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("CityMarketPOS.Models.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("CityMarketPOS.Models.Sale", "Sale")
-                        .WithMany("Details")
-                        .HasForeignKey("SaleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("GRNDetail");
-
-                    b.Navigation("Product");
-
-                    b.Navigation("Sale");
                 });
 
             modelBuilder.Entity("CityMarketPOS.Models.StockAdjustment", b =>
@@ -1146,11 +930,6 @@ namespace CityMarketPOS.Migrations
                     b.Navigation("GRNs");
 
                     b.Navigation("OrderDetails");
-                });
-
-            modelBuilder.Entity("CityMarketPOS.Models.Sale", b =>
-                {
-                    b.Navigation("Details");
                 });
 
             modelBuilder.Entity("CityMarketPOS.Models.StockTaking", b =>

@@ -1,0 +1,85 @@
+@model CityMarketPOS.Models.Counter
+
+@{
+    ViewData["Title"] = "Edit Counter";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Edit Counter</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Home">Home</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Counters</a></li>
+                    <li class="breadcrumb-item active">Edit Counter</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content">
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Edit Counter</h3>
+            </div>
+            <div class="card-body">
+                <form asp-action="Edit">
+                    <input type="hidden" asp-for="Id" />
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                    
+                    <div class="form-group">
+                        <label asp-for="Name" class="control-label">Counter Name</label>
+                        <input asp-for="Name" class="form-control" required />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Location" class="control-label">Location</label>
+                        <input asp-for="Location" class="form-control" />
+                        <span asp-validation-for="Location" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Status" class="control-label">Status</label>
+                        <select asp-for="Status" class="form-control">
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                            <option value="Maintenance">Maintenance</option>
+                        </select>
+                        <span asp-validation-for="Status" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="AssignedUserName" class="control-label">Assigned User</label>
+                        <input asp-for="AssignedUserName" class="form-control" placeholder="Enter user name" />
+                        <span asp-validation-for="AssignedUserName" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Description" class="control-label">Description</label>
+                        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Update Counter
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to List
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

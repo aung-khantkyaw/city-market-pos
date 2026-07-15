@@ -1,0 +1,116 @@
+@model CityMarketPOS.Models.Counter
+
+@{
+    ViewData["Title"] = "Counter Details";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Counter Details</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Home">Home</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Counters</a></li>
+                    <li class="breadcrumb-item active">Details</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content">
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Counter Information</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Counter Name</label>
+                            <p class="form-control-static">@Model.Name</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Status</label>
+                            <p class="form-control-static">
+                                <span class="badge badge-@(Model.Status == "Active" ? "success" : Model.Status == "Inactive" ? "secondary" : "warning")">
+                                    @Model.Status
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Location</label>
+                            <p class="form-control-static">@Model.Location</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Assigned User</label>
+                            <p class="form-control-static">@Model.AssignedUserName</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label>Description</label>
+                            <p class="form-control-static">@Model.Description</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Created Date</label>
+                            <p class="form-control-static">@Model.CreatedDate.ToString("yyyy-MM-dd HH:mm:ss")</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Created By</label>
+                            <p class="form-control-static">@Model.CreatedByUserName</p>
+                        </div>
+                    </div>
+                </div>
+                @if (Model.ModifiedDate.HasValue)
+                {
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Modified Date</label>
+                                <p class="form-control-static">@Model.ModifiedDate.Value.ToString("yyyy-MM-dd HH:mm:ss")</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Modified By</label>
+                                <p class="form-control-static">@Model.ModifiedByUserName</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="card-footer">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Delete
+                </a>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

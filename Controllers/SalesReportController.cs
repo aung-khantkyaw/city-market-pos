@@ -1,4 +1,5 @@
 using CityMarketPOS.Models;
+using CityMarketPOS.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -19,80 +20,64 @@ namespace CityMarketPOS.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index(DateTime? startDate = null, DateTime? endDate = null)
+        public async Task<IActionResult> Index(DateTime? startDate = null, DateTime? endDate = null, string cashierId = null, int? counterId = null)
         {
-            // Default to last 30 days if no dates provided
+            // Default to today if no dates provided
             if (!startDate.HasValue)
-                startDate = DateTime.Now.AddDays(-30);
+                startDate = DateTime.Today;
             if (!endDate.HasValue)
-                endDate = DateTime.Now;
+                endDate = DateTime.Today.AddDays(1).AddTicks(-1);
 
-            // Get inventory value metrics (as proxy for sales data since no sales model exists)
-            var totalStockValue = await _context.GRNDetails
-                .Where(g => g.CurrentStockQuantity > 0)
-                .SumAsync(g => g.CurrentStockQuantity * g.PurchasePrice);
+            // Build query with filters
+            var query = _context.Sales
+                .Include(s => s.Details)
+                .Include(s => s.POSSession)
+                    .ThenInclude(p => p.Counter)
+                .Where(s => s.SaleDate >= startDate.Value && s.SaleDate <= endDate.Value);
 
-            var totalStockSellingValue = await _context.GRNDetails
-                .Where(g => g.CurrentStockQuantity > 0)
-                .SumAsync(g => g.CurrentStockQuantity * g.SellingPrice);
+            if (!string.IsNullOrEmpty(cashierId))
+            {
+                query = query.Where(s => s.CashierId == cashierId);
+            }
 
-            var totalProducts = await _context.Products.CountAsync();
-            var totalCategories = await _context.Categories.CountAsync();
-            var totalSuppliers = await _context.Suppliers.CountAsync();
+            if (counterId.HasValue)
+            {
+                query = query.Where(s => s.CounterId == counterId.Value);
+            }
 
-            var lowStockItems = await _context.GRNDetails
-                .Include(g => g.Product)
-                .Where(g => g.CurrentStockQuantity <= g.Product.MinStockLevel)
-                .CountAsync();
+            var sales = await query.OrderByDescending(s => s.SaleDate).ToListAsync();
 
-            var expiringItems = await _context.GRNDetails
-                .Where(g => g.ExpiryDate.HasValue && 
-                            g.ExpiryDate <= DateTime.Now.AddDays(30) && 
-                            g.CurrentStockQuantity > 0)
-                .CountAsync();
+            // Calculate summary statistics
+            var totalSales = sales.Count;
+            var totalAmount = sales.Sum(s => s.GrandTotal);
+            var totalItems = sales.Sum(s => s.Details.Sum(d => d.Quantity));
+            var totalTax = sales.Sum(s => s.Tax);
+            var totalDiscount = sales.Sum(s => s.Discount);
 
-            // Category-wise stock distribution
-            var categoryDistribution = await _context.GRNDetails
-                .Include(g => g.Product)
-                    .ThenInclude(p => p.Category)
-                .Where(g => g.CurrentStockQuantity > 0)
-                .GroupBy(g => g.Product.Category.Name ?? "Uncategorized")
-                .Select(g => new
-                {
-                    Category = g.Key,
-                    TotalValue = g.Sum(x => x.CurrentStockQuantity * x.PurchasePrice),
-                    TotalQuantity = g.Sum(x => x.CurrentStockQuantity)
-                })
+            // Get cashiers for filter dropdown
+            var cashiers = await _context.Sales
+                .Where(s => s.SaleDate >= startDate.Value && s.SaleDate <= endDate.Value)
+                .Select(s => new { s.CashierId, s.CashierName })
+                .Distinct()
                 .ToListAsync();
 
-            // Stock value by category
-            var stockByCategory = await _context.GRNDetails
-                .Include(g => g.Product)
-                    .ThenInclude(p => p.Category)
-                .Where(g => g.CurrentStockQuantity > 0)
-                .GroupBy(g => g.Product.Category)
-                .Select(g => new
-                {
-                    CategoryName = g.Key.Name,
-                    TotalStock = g.Sum(x => x.CurrentStockQuantity),
-                    TotalValue = g.Sum(x => x.CurrentStockQuantity * x.PurchasePrice),
-                    PotentialRevenue = g.Sum(x => x.CurrentStockQuantity * x.SellingPrice)
-                })
-                .OrderByDescending(x => x.TotalValue)
+            // Get counters for filter dropdown
+            var counters = await _context.Counters
+                .Where(c => c.Status == "Active")
                 .ToListAsync();
 
             ViewBag.StartDate = startDate;
             ViewBag.EndDate = endDate;
-            ViewBag.TotalStockValue = totalStockValue;
-            ViewBag.TotalStockSellingValue = totalStockSellingValue;
-            ViewBag.PotentialProfit = totalStockSellingValue - totalStockValue;
-            ViewBag.TotalProducts = totalProducts;
-            ViewBag.TotalCategories = totalCategories;
-            ViewBag.TotalSuppliers = totalSuppliers;
-            ViewBag.LowStockItems = lowStockItems;
-            ViewBag.ExpiringItems = expiringItems;
-            ViewBag.CategoryDistribution = categoryDistribution;
-            ViewBag.StockByCategory = stockByCategory;
+            ViewBag.CashierId = cashierId;
+            ViewBag.CounterId = counterId;
+            ViewBag.Sales = sales;
+            ViewBag.TotalSales = totalSales;
+            ViewBag.TotalAmount = totalAmount;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalTax = totalTax;
+            ViewBag.TotalDiscount = totalDiscount;
+            ViewBag.Cashiers = cashiers;
+            ViewBag.Counters = counters;
 
             return View();
         }
@@ -150,6 +135,34 @@ namespace CityMarketPOS.Controllers
             ViewBag.RecentStockTakings = recentStockTakings;
 
             return View();
+        }
+
+        public async Task<IActionResult> SessionReport(int sessionId)
+        {
+            var session = await _context.POSSessions
+                .Include(s => s.Counter)
+                .FirstOrDefaultAsync(s => s.Id == sessionId);
+
+            if (session == null)
+            {
+                return NotFound();
+            }
+
+            var sales = await _context.Sales
+                .Where(s => s.POSSessionId == sessionId)
+                .Include(s => s.Details)
+                .ToListAsync();
+
+            var viewModel = new SessionReportViewModel
+            {
+                Session = session,
+                Sales = sales,
+                TotalSales = sales.Count,
+                TotalAmount = sales.Sum(s => s.GrandTotal),
+                TotalItems = sales.Sum(s => s.Details.Sum(d => d.Quantity))
+            };
+
+            return View(viewModel);
         }
     }
 }

@@ -240,18 +240,102 @@
             </div>
         }
 
-        <!-- Cashier Role: Simple Dashboard -->
+        <!-- Cashier Role: POS Dashboard with Counter Selection -->
         @if (User.IsInRole("Cashier"))
         {
             <div class="row">
                 <div class="col-md-12">
                     <div class="card card-success shadow">
                         <div class="card-header">
-                            <h3 class="card-title"><i class="fas fa-cash-register"></i> POS Terminal</h3>
+                            <h3 class="card-title"><i class="fas fa-cash-register"></i> Welcome to the POS Terminal</h3>
                         </div>
                         <div class="card-body">
-                            <h4 class="text-center">Welcome to the POS Terminal</h4>
-                            <p class="text-center text-muted">Select a menu option from the sidebar to begin processing sales.</p>
+                            @if (TempData["Error"] != null)
+                            {
+                                <div class="alert alert-danger alert-dismissible">
+                                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                                    <h5><i class="icon fas fa-ban"></i> Error!</h5>
+                                    @TempData["Error"]
+                                </div>
+                            }
+
+                            @if (ViewBag.ActiveSession != null)
+                            {
+                                <div class="alert alert-success">
+                                    <h5><i class="icon fas fa-check-circle"></i> Active Session</h5>
+                                    <p>You are currently logged in at <strong>@ViewBag.ActiveSession.Counter.Name</strong></p>
+                                    <p>Session started: @ViewBag.ActiveSession.StartTime.ToString("dd MMM yyyy HH:mm")</p>
+                                    <a asp-action="Index" asp-controller="POSTerminal" class="btn btn-primary btn-lg mt-2">
+                                        <i class="fas fa-shopping-cart"></i> Go to POS Terminal
+                            </a>
+                            <a asp-action="TodaySales" asp-controller="POSTerminal" class="btn btn-info btn-lg mt-2 ml-2">
+                                <i class="fas fa-list"></i> Today's Sales
+                            </a>
+                            <a asp-action="EndSession" asp-controller="POSSession" class="btn btn-danger btn-lg mt-2 ml-2">
+                                <i class="fas fa-sign-out-alt"></i> End Session
+                            </a>
+                                </div>
+                            }
+                            else
+                            {
+                                <h4 class="text-center mb-4">Select a Counter to Start Your Shift</h4>
+                                
+                                @if (ViewBag.Counters != null && ((List<CityMarketPOS.Models.Counter>)ViewBag.Counters).Any())
+                                {
+                                    <div class="row">
+                                        @foreach (var counter in ViewBag.Counters as List<CityMarketPOS.Models.Counter>)
+                                        {
+                                            <div class="col-md-4">
+                                                <div class="card card-outline card-primary mb-3">
+                                                    <div class="card-header">
+                                                        <h5 class="card-title">@counter.Name</h5>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div class="info-box">
+                                                            <span class="info-box-icon bg-success"><i class="fas fa-store"></i></span>
+                                                            <div class="info-box-content">
+                                                                <span class="info-box-text">Location</span>
+                                                                <span class="info-box-number">@counter.Location</span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="info-box">
+                                                            <span class="info-box-icon bg-info"><i class="fas fa-user"></i></span>
+                                                            <div class="info-box-content">
+                                                                <span class="info-box-text">Assigned User</span>
+                                                                <span class="info-box-number">@(counter.AssignedUserName ?? "Unassigned")</span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="info-box">
+                                                            <span class="info-box-icon bg-warning"><i class="fas fa-info-circle"></i></span>
+                                                            <div class="info-box-content">
+                                                                <span class="info-box-text">Status</span>
+                                                                <span class="info-box-number">
+                                                                    <span class="badge badge-success">@counter.Status</span>
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="card-footer">
+                                                        <form asp-action="SelectCounter" asp-controller="POSSession" method="post">
+                                                            <input type="hidden" name="counterId" value="@counter.Id" />
+                                                            <button type="submit" class="btn btn-primary btn-block">
+                                                                <i class="fas fa-check"></i> Select Counter
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="alert alert-warning">
+                                        <h5><i class="icon fas fa-exclamation-triangle"></i> No Counters Available</h5>
+                                        There are no active counters available. Please contact your administrator to set up counters.
+                                    </div>
+                                }
+                            }
                         </div>
                     </div>
                 </div>

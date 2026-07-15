@@ -1,0 +1,605 @@
+@model IEnumerable<CityMarketPOS.Models.Product>
+@using CityMarketPOS.Controllers
+
+@{
+    ViewData["Title"] = "POS Terminal";
+    var session = ViewBag.Session as CityMarketPOS.Models.POSSession;
+    var stockSummaries = ViewBag.StockSummaries as Dictionary<int, ProductStockSummary> ?? new Dictionary<int, ProductStockSummary>();
+}
+
+<style>
+    .pos-shell .card { border-radius: 6px; }
+    .pos-toolbar { gap: .5rem; }
+    .product-grid { max-height: calc(100vh - 265px); overflow-y: auto; }
+    .product-tile {
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: .75rem;
+        margin-bottom: .75rem;
+        min-height: 122px;
+        cursor: pointer;
+        background: #fff;
+        transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+    }
+    .product-tile:hover { border-color: #17a2b8; box-shadow: 0 0 0 .15rem rgba(23, 162, 184, .12); transform: translateY(-1px); }
+    .product-tile.out-of-stock { opacity: .55; cursor: not-allowed; }
+    .product-name { min-height: 38px; font-weight: 600; line-height: 1.2; }
+    .cart-panel { position: sticky; top: 1rem; }
+    .cart-table-wrap { max-height: calc(100vh - 500px); min-height: 190px; overflow-y: auto; }
+    .cart-qty { width: 72px; }
+    .summary-line { display: flex; justify-content: space-between; margin-bottom: .35rem; }
+    .summary-total { font-size: 1.35rem; }
+    .payment-panel .btn-group-toggle .btn { min-width: 33.333%; }
+    .receipt-paper { font-family: Consolas, "Courier New", monospace; font-size: 13px; color: #111; }
+    .receipt-paper table { width: 100%; }
+    .receipt-paper th, .receipt-paper td { padding: 2px 0; }
+    @@media print {
+        body * { visibility: hidden; }
+        #receiptContent, #receiptContent * { visibility: visible; }
+        #receiptContent { position: absolute; left: 0; top: 0; width: 100%; }
+    }
+</style>
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-7">
+                <h1 class="mb-1"><i class="fas fa-cash-register mr-2"></i>POS Terminal</h1>
+                @if (session != null)
+                {
+                    <small class="text-muted">Counter: @session.Counter?.Name | Cashier: @session.UserName | Started: @session.StartTime.ToString("HH:mm")</small>
+                }
+            </div>
+            <div class="col-sm-5">
+                <div class="float-sm-right">
+                    <a asp-action="TodaySales" asp-controller="POSTerminal" class="btn btn-sm btn-info">
+                        <i class="fas fa-list mr-1"></i> Today's Sales
+                    </a>
+                    <button type="button" class="btn btn-sm btn-warning" onclick="endSession()">
+                        <i class="fas fa-sign-out-alt mr-1"></i> End Session
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content pos-shell">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card card-outline card-info">
+                    <div class="card-header">
+                        <div class="d-flex flex-wrap align-items-center pos-toolbar">
+                            <select id="categoryFilter" class="form-control form-control-sm" style="max-width: 220px;" onchange="searchProducts()">
+    <option value="" selected>All Categories</option>
+    
+    @if (ViewBag.Categories is List<CityMarketPOS.Models.Category> categories)
+    {
+        foreach (var category in categories)
+        {
+            <option value="@category.Id">@category.Name</option>
+        }
+    } 
+</select>
+                            <div class="input-group input-group-sm flex-grow-1">
+                                <input type="text" id="productSearch" class="form-control" placeholder="Scan barcode or search product / item code" autocomplete="off" />
+                                <span class="input-group-append">
+                                    <button type="button" class="btn btn-info" onclick="searchProducts()" title="Search">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </span>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="resetSearch()" title="Reset search">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row product-grid" id="productGrid">
+                            @if (Model != null && Model.Any())
+                            {
+                                foreach (var product in Model)
+                                {
+                                    stockSummaries.TryGetValue(product.Id, out var summary);
+                                    var stock = summary?.Stock ?? 0;
+                                    var price = summary?.Price ?? 0;
+                                    <div class="col-xl-3 col-lg-4 col-md-4 col-sm-6">
+                                        <div class="product-tile @(stock <= 0 ? "out-of-stock" : "")" onclick="selectProduct(@product.Id, @stock)">
+                                            <div class="product-name">@product.Name</div>
+                                            <div class="small text-muted">@product.Category?.Name</div>
+                                            <div class="d-flex justify-content-between align-items-end mt-2">
+                                                <span class="badge badge-@(stock > 0 ? "success" : "secondary")">@stock in stock</span>
+                                                <div class="text-right">
+                                                    <div class="small text-muted">@product.UOM?.ShortName</div>
+                                                    <strong>@price.ToString("F2")</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="col-12 text-center text-muted p-4">No products available</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card card-outline card-primary cart-panel">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-shopping-cart mr-1"></i> Cart <span id="itemCount" class="badge badge-primary ml-1">0</span></h3>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearCart()" title="Clear cart">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body p-0 cart-table-wrap">
+                        <table class="table table-sm table-striped mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th class="text-center">Qty</th>
+                                    <th class="text-right">Total</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="cartItems">
+                                <tr><td colspan="4" class="text-center text-muted py-4">Cart is empty</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer">
+                        <div class="summary-line"><span>Subtotal</span><strong id="subtotal">0.00</strong></div>
+                        <div class="summary-line"><span>Tax (5%)</span><strong id="tax">0.00</strong></div>
+                        <div class="summary-line summary-total"><span>Total</span><strong id="total" class="text-primary">0.00</strong></div>
+                    </div>
+                </div>
+
+                <div class="card card-outline card-success payment-panel">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-credit-card mr-1"></i> Payment</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="btn-group btn-group-toggle d-flex mb-3" data-toggle="buttons">
+                            <label class="btn btn-outline-success active">
+                                <input type="radio" name="paymentMethod" value="Cash" checked onchange="setPaymentMethod('Cash')"> Cash
+                            </label>
+                            <label class="btn btn-outline-success">
+                                <input type="radio" name="paymentMethod" value="Card" onchange="setPaymentMethod('Card')"> Card
+                            </label>
+                            <label class="btn btn-outline-success">
+                                <input type="radio" name="paymentMethod" value="Mobile Payment" onchange="setPaymentMethod('Mobile Payment')"> Mobile
+                            </label>
+                        </div>
+
+                        <div id="cashGroup">
+                            <div class="form-group">
+                                <label>Cash Received</label>
+                                <input type="number" id="cashReceived" class="form-control form-control-lg" min="0" step="0.01" placeholder="0.00" oninput="updateChangeDue()" />
+                            </div>
+                            <div class="alert alert-light border py-2 mb-3">
+                                <div class="summary-line mb-0"><span>Change Due</span><strong id="changeDue" class="text-success">0.00</strong></div>
+                            </div>
+                        </div>
+
+                        <div class="form-group" id="cardNumberGroup" style="display: none;">
+                            <label>Card Number</label>
+                            <input type="text" id="cardNumber" class="form-control" placeholder="Last 4 or card reference" autocomplete="off" />
+                        </div>
+
+                        <div class="form-group" id="referenceGroup" style="display: none;">
+                            <label>Payment Reference</label>
+                            <input type="text" id="paymentReference" class="form-control" placeholder="Transaction ID or wallet reference" autocomplete="off" />
+                        </div>
+
+                        <button type="button" id="completeSaleButton" class="btn btn-success btn-lg btn-block" onclick="completeSale()">
+                            <i class="fas fa-check mr-1"></i> Complete Sale
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="productModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title"><i class="fas fa-box-open mr-2"></i>Select Product</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Product</label>
+                    <input type="text" id="selectedProductName" class="form-control" readonly />
+                </div>
+                <div class="form-group">
+                    <label>Stock Batch</label>
+                    <select id="stockOption" class="form-control"></select>
+                    <small id="batchHelp" class="form-text text-muted"></small>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-5">
+                        <label>Quantity</label>
+                        <input type="number" id="quantity" class="form-control" min="1" value="1" />
+                    </div>
+                    <div class="form-group col-7">
+                        <label>Unit Price</label>
+                        <input type="text" id="unitPrice" class="form-control" readonly />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="addToCart()">
+                    <i class="fas fa-cart-plus mr-1"></i> Add to Cart
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="receiptModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Sale Receipt</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="receiptContent"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="window.print()">
+                    <i class="fas fa-print mr-1"></i> Print
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let selectedProductId = null;
+        let selectedGRNDetailId = null;
+        let currentTotal = 0;
+        let currentPaymentMethod = 'Cash';
+
+        $(document).ready(function () {
+            loadCart();
+            $('#productSearch').focus();
+        });
+
+        function money(value) {
+            return Number(value || 0).toFixed(2);
+        }
+
+        function showMessage(message, type) {
+            $(document).Toasts('create', {
+                class: type === 'error' ? 'bg-danger' : 'bg-success',
+                title: type === 'error' ? 'POS Alert' : 'POS',
+                body: message,
+                autohide: true,
+                delay: 2500
+            });
+        }
+
+        function resetSearch() {
+            $('#productSearch').val('');
+            $('#categoryFilter').val('');
+            searchProducts();
+        }
+
+        function searchProducts(autoSelect) {
+            const searchTerm = $('#productSearch').val();
+            const categoryId = $('#categoryFilter').val();
+
+            $.post('/POSTerminal/SearchProducts', { searchTerm, categoryId }, function (data) {
+                if (!data.success) {
+                    showMessage(data.message || 'Unable to search products', 'error');
+                    return;
+                }
+
+                renderProducts(data.products);
+                if (autoSelect && data.products.length === 1 && data.products[0].availableStock > 0) {
+                    selectProduct(data.products[0].id, data.products[0].availableStock);
+                }
+            });
+        }
+
+        function renderProducts(products) {
+            const grid = $('#productGrid');
+            grid.empty();
+
+            if (!products.length) {
+                grid.html('<div class="col-12 text-center text-muted p-4">No products found</div>');
+                return;
+            }
+
+            products.forEach(product => {
+                const stockClass = product.availableStock > 0 ? 'success' : 'secondary';
+                const disabledClass = product.availableStock > 0 ? '' : 'out-of-stock';
+                grid.append(`
+                    <div class="col-xl-3 col-lg-4 col-md-4 col-sm-6">
+                        <div class="product-tile ${disabledClass}" onclick="selectProduct(${product.id}, ${product.availableStock})">
+                            <div class="product-name">${product.name}</div>
+                            <div class="small text-muted">${product.category ? product.category.name : ''}</div>
+                            <div class="d-flex justify-content-between align-items-end mt-2">
+                                <span class="badge badge-${stockClass}">${product.availableStock} in stock</span>
+                                <div class="text-right">
+                                    <div class="small text-muted">${product.uom ? product.uom.shortName : ''}</div>
+                                    <strong>${money(product.startingPrice)}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            });
+        }
+
+        function selectProduct(productId, availableStock) {
+            if (availableStock <= 0) {
+                showMessage('No stock available for this product', 'error');
+                return;
+            }
+
+            selectedProductId = productId;
+            $.post('/POSTerminal/GetProductStock', { productId }, function (data) {
+                if (data.success && data.stockDetails.length > 0) {
+                    const product = data.stockDetails[0].product;
+                    $('#selectedProductName').val(product.name);
+
+                    const select = $('#stockOption');
+                    select.empty().append('<option value="">Select stock batch</option>');
+
+                    data.stockDetails.forEach(stock => {
+                        const expiry = stock.expiryDate ? new Date(stock.expiryDate).toLocaleDateString() : 'No expiry';
+                        select.append(`<option value="${stock.id}" data-price="${stock.sellingPrice}" data-stock="${stock.currentStockQuantity}">
+                            ${expiry} | ${stock.currentStockQuantity} units | ${money(stock.sellingPrice)}
+                        </option>`);
+                    });
+
+                    if (data.stockDetails.length === 1) {
+                        select.val(data.stockDetails[0].id).trigger('change');
+                    } else {
+                        selectedGRNDetailId = null;
+                        $('#unitPrice').val('');
+                        $('#batchHelp').text('');
+                    }
+
+                    $('#quantity').val(1);
+                    $('#productModal').modal('show');
+                } else {
+                    showMessage('No stock available for this product', 'error');
+                }
+            });
+        }
+
+        $('#stockOption').on('change', function () {
+            const option = this.options[this.selectedIndex];
+            if (option && option.value) {
+                selectedGRNDetailId = parseInt(option.value);
+                $('#unitPrice').val(money(option.dataset.price));
+                $('#quantity').attr('max', parseInt(option.dataset.stock));
+                $('#batchHelp').text(`${option.dataset.stock} units available in selected batch`);
+            }
+        });
+
+        function addToCart() {
+            const quantity = parseInt($('#quantity').val());
+            const max = parseInt($('#quantity').attr('max') || '0');
+
+            if (!selectedGRNDetailId || quantity < 1) {
+                showMessage('Please select stock and enter a valid quantity', 'error');
+                return;
+            }
+
+            if (max && quantity > max) {
+                showMessage(`Only ${max} units are available in this batch`, 'error');
+                return;
+            }
+
+            $.post('/POSTerminal/AddToCart', {
+                productId: selectedProductId,
+                grnDetailId: selectedGRNDetailId,
+                quantity
+            }, function (data) {
+                if (data.success) {
+                    $('#productModal').modal('hide');
+                    loadCart();
+                    selectedProductId = null;
+                    selectedGRNDetailId = null;
+                    $('#quantity').val(1);
+                    $('#productSearch').focus().select();
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            });
+        }
+
+        function loadCart() {
+            $.post('/POSTerminal/GetCart', function (data) {
+                if (data.success) {
+                    renderCart(data.cart);
+                    currentTotal = Number(data.total || 0);
+                    $('#subtotal').text(money(data.subtotal));
+                    $('#tax').text(money(data.tax));
+                    $('#total').text(money(data.total));
+                    $('#itemCount').text(data.itemCount || 0);
+                    updateChangeDue();
+                }
+            });
+        }
+
+        function renderCart(cart) {
+            const tbody = $('#cartItems');
+            tbody.empty();
+
+            if (!cart.length) {
+                tbody.html('<tr><td colspan="4" class="text-center text-muted py-4">Cart is empty</td></tr>');
+                return;
+            }
+
+            cart.forEach(item => {
+                tbody.append(`
+                    <tr>
+                        <td>
+                            <div class="font-weight-bold">${item.productName}</div>
+                            <small class="text-muted">${money(item.unitPrice)} each</small>
+                        </td>
+                        <td class="text-center">
+                            <input type="number" value="${item.quantity}" min="1" class="form-control form-control-sm cart-qty"
+                                   onchange="updateCart(${item.grnDetailId}, this.value)" />
+                        </td>
+                        <td class="text-right font-weight-bold">${money(item.totalPrice)}</td>
+                        <td class="text-right">
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFromCart(${item.grnDetailId})" title="Remove">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `);
+            });
+        }
+
+        function updateCart(grnDetailId, quantity) {
+            $.post('/POSTerminal/UpdateCart', { grnDetailId, quantity: parseInt(quantity) }, function (data) {
+                if (!data.success) {
+                    showMessage(data.message || 'Unable to update cart', 'error');
+                }
+                loadCart();
+            });
+        }
+
+        function removeFromCart(grnDetailId) {
+            $.post('/POSTerminal/RemoveFromCart', { grnDetailId }, function (data) {
+                if (data.success) {
+                    loadCart();
+                }
+            });
+        }
+
+        function clearCart() {
+            if (confirm('Clear the current cart?')) {
+                $.post('/POSTerminal/ClearCart', function (data) {
+                    if (data.success) {
+                        loadCart();
+                        $('#productSearch').focus();
+                    }
+                });
+            }
+        }
+
+        function setPaymentMethod(method) {
+            currentPaymentMethod = method;
+            $('#cashGroup').toggle(method === 'Cash');
+            $('#cardNumberGroup').toggle(method === 'Card');
+            $('#referenceGroup').toggle(method === 'Mobile Payment');
+            updateChangeDue();
+        }
+
+        function updateChangeDue() {
+            const received = Number($('#cashReceived').val() || 0);
+            const change = Math.max(0, received - currentTotal);
+            $('#changeDue').text(money(change));
+        }
+
+        function completeSale() {
+            const payload = {
+                paymentMethod: currentPaymentMethod,
+                cardNumber: $('#cardNumber').val(),
+                cashReceived: $('#cashReceived').val(),
+                paymentReference: $('#paymentReference').val()
+            };
+
+            if (currentTotal <= 0) {
+                showMessage('Cart is empty', 'error');
+                return;
+            }
+
+            if (currentPaymentMethod === 'Cash' && Number(payload.cashReceived || 0) < currentTotal) {
+                showMessage('Cash received is less than the total', 'error');
+                return;
+            }
+
+            if (currentPaymentMethod === 'Card' && !payload.cardNumber) {
+                showMessage('Please enter the card number or reference', 'error');
+                return;
+            }
+
+            $('#completeSaleButton').prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Processing');
+
+            $.post('/POSTerminal/CompleteSale', payload, function (data) {
+                if (data.success) {
+                    buildReceipt(data);
+                    $('#receiptModal').modal('show');
+                    $('#cashReceived, #cardNumber, #paymentReference').val('');
+                    loadCart();
+                    searchProducts();
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            }).always(function () {
+                $('#completeSaleButton').prop('disabled', false).html('<i class="fas fa-check mr-1"></i> Complete Sale');
+            });
+        }
+
+        function buildReceipt(sale) {
+            const rows = sale.items.map(item => `
+                <tr>
+                    <td colspan="3">${item.productName}</td>
+                </tr>
+                <tr>
+                    <td>${item.quantity} x ${money(item.unitPrice)}</td>
+                    <td></td>
+                    <td class="text-right">${money(item.totalPrice)}</td>
+                </tr>
+            `).join('');
+
+            $('#receiptContent').html(`
+                <div class="receipt-paper">
+                    <div class="text-center mb-2">
+                        <strong>CityMarket POS</strong><br />
+                        <span>${sale.counter || ''}</span><br />
+                        <span>${sale.saleDate}</span>
+                    </div>
+                    <div>Sale: ${sale.saleNumber}</div>
+                    <div>Cashier: ${sale.cashier || ''}</div>
+                    <hr />
+                    <table>${rows}</table>
+                    <hr />
+                    <div class="summary-line"><span>Subtotal</span><span>${money(sale.subtotal)}</span></div>
+                    <div class="summary-line"><span>Tax</span><span>${money(sale.tax)}</span></div>
+                    <div class="summary-line"><strong>Total</strong><strong>${money(sale.total)}</strong></div>
+                    <div class="summary-line"><span>Payment</span><span>${sale.paymentMethod}</span></div>
+                    <div class="summary-line"><span>Received</span><span>${money(sale.cashReceived)}</span></div>
+                    <div class="summary-line"><span>Change</span><span>${money(sale.changeDue)}</span></div>
+                    <hr />
+                    <div class="text-center">Thank you</div>
+                </div>
+            `);
+        }
+
+        function endSession() {
+            if (confirm('End the current POS session?')) {
+                window.location.href = '/POSSession/EndSession';
+            }
+        }
+
+        $('#productSearch').on('keypress', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                searchProducts(true);
+            }
+        });
+    </script>
+}

@@ -67,11 +67,17 @@
 
                         @if (User.IsInRole("Manager") || User.IsInRole("Cashier"))
                         {
-                            <li class="nav-header">SALES</li>
+                            <li class="nav-header">POINT OF SALE</li>
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="nav-icon fas fa-shopping-cart"></i>
+                                <a asp-action="Index" asp-controller="POSTerminal" class="nav-link">
+                                    <i class="nav-icon fas fa-cash-register"></i>
                                     <p>POS Terminal</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a asp-action="TodaySales" asp-controller="POSTerminal" class="nav-link">
+                                    <i class="nav-icon fas fa-list"></i>
+                                    <p>Today's Sales</p>
                                 </a>
                             </li>
                         }
@@ -154,15 +160,21 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a asp-action="Index" asp-controller="AuditLog" class="nav-link">
-                                    <i class="nav-icon fas fa-history"></i>
-                                    <p>Audit Logs</p>
+                                <a asp-action="Index" asp-controller="Counter" class="nav-link">
+                                    <i class="nav-icon fas fa-store"></i>
+                                    <p>Counters</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="nav-icon fas fa-chart-line"></i>
+                                <a asp-action="Index" asp-controller="SalesReport" class="nav-link">
+                                    <i class="nav-icon fas fa-chart-bar"></i>
                                     <p>Sales Reports</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a asp-action="Index" asp-controller="AuditLog" class="nav-link">
+                                    <i class="nav-icon fas fa-history"></i>
+                                    <p>Audit Logs</p>
                                 </a>
                             </li>
                         }

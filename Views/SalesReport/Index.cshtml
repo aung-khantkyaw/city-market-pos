@@ -20,12 +20,85 @@
 
 <div class="content">
     <div class="container-fluid">
-        <div class="row">
+        <!-- Filter Form -->
+        <div class="card card-outline card-primary mb-3">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-filter"></i> Filter Sales</h3>
+            </div>
+            <div class="card-body">
+                <form asp-action="Index" method="get" class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Start Date</label>
+                            <input type="date" name="startDate" class="form-control" value="@ViewBag.StartDate?.ToString("yyyy-MM-dd")" />
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>End Date</label>
+                            <input type="date" name="endDate" class="form-control" value="@ViewBag.EndDate?.ToString("yyyy-MM-dd")" />
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Cashier</label>
+                            <select name="cashierId" class="form-control">
+                                <option value="">All Cashiers</option>
+                                @if (ViewBag.Cashiers != null)
+                                {
+                                    foreach (var cashier in ViewBag.Cashiers)
+                                    {
+                                        <option value="@cashier.CashierId" selected="@(ViewBag.CashierId == cashier.CashierId)">@cashier.CashierName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Counter</label>
+                            <select name="counterId" class="form-control">
+                                <option value="">All Counters</option>
+                                @if (ViewBag.Counters != null)
+                                {
+                                    foreach (var counter in ViewBag.Counters)
+                                    {
+                                        <option value="@counter.Id" selected="@(ViewBag.CounterId == counter.Id)">@counter.Name</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Apply Filters
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Clear Filters
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Summary Statistics -->
+        <div class="row mb-3">
             <div class="col-md-3">
                 <div class="small-box bg-info">
                     <div class="inner">
-                        <h3>@ViewBag.TotalStockValue:F2</h3>
-                        <p>Total Stock Value</p>
+                        <h3>@ViewBag.TotalSales</h3>
+                        <p>Total Sales</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>@ViewBag.TotalAmount.ToString("F2")</h3>
+                        <p>Total Revenue ($)</p>
                     </div>
                     <div class="icon">
                         <i class="fas fa-dollar-sign"></i>
@@ -33,107 +106,114 @@
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="small-box bg-success">
-                    <div class="inner">
-                        <h3>@ViewBag.TotalStockSellingValue:F2</h3>
-                        <p>Potential Revenue</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
                 <div class="small-box bg-warning">
                     <div class="inner">
-                        <h3>@ViewBag.PotentialProfit:F2</h3>
-                        <p>Potential Profit</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fas fa-coins"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="small-box bg-primary">
-                    <div class="inner">
-                        <h3>@ViewBag.TotalProducts</h3>
-                        <p>Total Products</p>
+                        <h3>@ViewBag.TotalItems</h3>
+                        <p>Total Items Sold</p>
                     </div>
                     <div class="icon">
                         <i class="fas fa-box"></i>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Inventory Summary</h3>
+            <div class="col-md-3">
+                <div class="small-box bg-danger">
+                    <div class="inner">
+                        <h3>@ViewBag.TotalTax.ToString("F2")</h3>
+                        <p>Total Tax (5%)</p>
                     </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="info-box">
-                                    <span class="info-box-icon bg-info"><i class="fas fa-tags"></i></span>
-                                    <div class="info-box-content">
-                                        <span class="info-box-text">Total Categories</span>
-                                        <span class="info-box-number">@ViewBag.TotalCategories</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="info-box">
-                                    <span class="info-box-icon bg-success"><i class="fas fa-truck"></i></span>
-                                    <div class="info-box-content">
-                                        <span class="info-box-text">Total Suppliers</span>
-                                        <span class="info-box-number">@ViewBag.TotalSuppliers</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="info-box">
-                                    <span class="info-box-icon bg-danger"><i class="fas fa-exclamation-triangle"></i></span>
-                                    <div class="info-box-content">
-                                        <span class="info-box-text">Low Stock Items</span>
-                                        <span class="info-box-number">@ViewBag.LowStockItems</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="info-box">
-                                    <span class="info-box-icon bg-warning"><i class="fas fa-calendar-times"></i></span>
-                                    <div class="info-box-content">
-                                        <span class="info-box-text">Expiring Items</span>
-                                        <span class="info-box-number">@ViewBag.ExpiringItems</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="icon">
+                        <i class="fas fa-percentage"></i>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
+        </div>
+
+        <!-- Sales Table -->
+        <div class="card card-outline card-primary">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-list"></i> Sales Details</h3>
+            </div>
+            <div class="card-body p-0 table-responsive">
+                @if (ViewBag.Sales != null && ((List<CityMarketPOS.Models.Sale>)ViewBag.Sales).Any())
+                {
+                    <table class="table table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th>Sale #</th>
+                                <th>Date/Time</th>
+                                <th>Cashier</th>
+                                <th>Counter</th>
+                                <th>Items</th>
+                                <th>Subtotal</th>
+                                <th>Tax</th>
+                                <th>Discount</th>
+                                <th>Total</th>
+                                <th>Payment</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var sale in ViewBag.Sales as List<CityMarketPOS.Models.Sale>)
+                            {
+                                <tr>
+                                    <td><span class="badge badge-info">@sale.SaleNumber</span></td>
+                                    <td>@sale.SaleDate.ToString("dd MMM yyyy HH:mm")</td>
+                                    <td>@sale.CashierName</td>
+                                    <td>@sale.POSSession?.Counter?.Name</td>
+                                    <td>@sale.Details.Sum(d => d.Quantity)</td>
+                                    <td>@sale.Subtotal.ToString("F2")</td>
+                                    <td>@sale.Tax.ToString("F2")</td>
+                                    <td>@sale.Discount.ToString("F2")</td>
+                                    <td><strong>@sale.GrandTotal.ToString("F2")</strong></td>
+                                    <td><span class="badge badge-success">@sale.PaymentMethod</span></td>
+                                    <td>
+                                        <a asp-action="SessionReport" asp-route-sessionId="@sale.POSSessionId" class="btn btn-sm btn-info">
+                                            <i class="fas fa-file-invoice"></i> Session
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr class="bg-light">
+                                <td colspan="6" class="text-right"><strong>Grand Total:</strong></td>
+                                <td><strong>@ViewBag.TotalTax.ToString("F2")</strong></td>
+                                <td><strong>@ViewBag.TotalDiscount.ToString("F2")</strong></td>
+                                <td colspan="3"><strong class="text-success">@ViewBag.TotalAmount.ToString("F2")</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-info m-3">
+                        <h5><i class="icon fas fa-info-circle"></i> No Sales Found</h5>
+                        No sales found for the selected criteria.
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        @* <div class="row mt-3">
+            <div class="col-md-12">
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Quick Actions</h3>
                     </div>
                     <div class="card-body">
-                        <div class="btn-group w-100 mb-2">
+                        <div class="btn-group mr-2">
                             <a asp-action="InventoryValuation" class="btn btn-info">
                                 <i class="fas fa-calculator"></i> Inventory Valuation
                             </a>
                         </div>
-                        <div class="btn-group w-100 mb-2">
+                        <div class="btn-group mr-2">
                             <a asp-action="StockMovement" class="btn btn-success">
                                 <i class="fas fa-exchange-alt"></i> Stock Movement
                             </a>
                         </div>
-                        <div class="btn-group w-100">
+                        <div class="btn-group">
                             <a asp-action="Index" asp-controller="AuditLog" class="btn btn-warning">
                                 <i class="fas fa-history"></i> Audit Logs
                             </a>
@@ -141,47 +221,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Stock Distribution by Category</h3>
-            </div>
-            <div class="card-body">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Category</th>
-                            <th>Total Quantity</th>
-                            <th>Total Value</th>
-                            <th>Percentage</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (ViewBag.CategoryDistribution != null)
-                        {
-                            var categoryDistribution = (System.Collections.Generic.IEnumerable<dynamic>)ViewBag.CategoryDistribution;
-                            var totalValue = categoryDistribution.Sum(x => (decimal)x.TotalValue);
-                            foreach (var item in categoryDistribution)
-                            {
-                                var percentage = totalValue > 0 ? ((decimal)item.TotalValue / totalValue) * 100 : 0;
-                                <tr>
-                                    <td>@item.Category</td>
-                                    <td>@item.TotalQuantity</td>
-                                    <td>@item.TotalValue:F2</td>
-                                    <td>
-                                        <div class="progress">
-                                            <div class="progress-bar bg-info" style="width: @percentage%">
-                                                @percentage:F1%
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        </div> *@
     </div>
 </div>
