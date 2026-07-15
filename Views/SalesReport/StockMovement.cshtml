@@ -1,0 +1,124 @@
+@{
+    ViewData["Title"] = "Stock Movement";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Stock Movement</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Home">Home</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Sales Reports</a></li>
+                    <li class="breadcrumb-item active">Stock Movement</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Recent Stock Adjustments</h3>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Product</th>
+                                    <th>Type</th>
+                                    <th>Quantity</th>
+                                    <th>Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (ViewBag.RecentAdjustments != null)
+                                {
+                                    foreach (var item in ViewBag.RecentAdjustments)
+                                    {
+                                        <tr>
+                                            <td>@item.AdjustmentDate.ToString("yyyy-MM-dd HH:mm")</td>
+                                            <td>@item.GRNDetail?.Product?.Name</td>
+                                            <td>
+                                                <span class="badge badge-@(item.AdjustmentType == "In" || item.AdjustmentType == "Correction" ? "success" : "danger")">
+                                                    @item.AdjustmentType
+                                                </span>
+                                            </td>
+                                            <td>@item.Quantity</td>
+                                            <td>@item.Reason</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="5" class="text-center">No recent adjustments</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Recent Stock Takings</h3>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Stock Taking #</th>
+                                    <th>Status</th>
+                                    <th>Items</th>
+                                    <th>Conducted By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (ViewBag.RecentStockTakings != null)
+                                {
+                                    foreach (var item in ViewBag.RecentStockTakings)
+                                    {
+                                        <tr>
+                                            <td>@item.TakingDate.ToString("yyyy-MM-dd HH:mm")</td>
+                                            <td>@item.StockTakingNumber</td>
+                                            <td>
+                                                <span class="badge badge-@(item.Status == "Completed" ? "success" : item.Status == "In Progress" ? "warning" : "danger")">
+                                                    @item.Status
+                                                </span>
+                                            </td>
+                                            <td>@item.Details.Count</td>
+                                            <td>@item.ConductedByUserName</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="5" class="text-center">No recent stock takings</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Reports
+            </a>
+        </div>
+    </div>
+</div>

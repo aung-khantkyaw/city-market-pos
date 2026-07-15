@@ -1,6 +1,7 @@
 ﻿using CityMarketPOS.Models;
 using CityMarketPOS.Repositories;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -10,10 +11,14 @@ namespace CityMarketPOS.Controllers
     public class CategoryController : Controller
     {
         private readonly ICategoryRepository _categoryRepo;
+        private readonly IAuditLogRepository _auditLogRepo;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public CategoryController(ICategoryRepository categoryRepo)
+        public CategoryController(ICategoryRepository categoryRepo, IAuditLogRepository auditLogRepo, UserManager<ApplicationUser> userManager)
         {
             _categoryRepo = categoryRepo;
+            _auditLogRepo = auditLogRepo;
+            _userManager = userManager;
         }
 
         public async Task<IActionResult> Index()
@@ -36,6 +41,10 @@ namespace CityMarketPOS.Controllers
 
                 await _categoryRepo.AddAsync(category);
                 await _categoryRepo.SaveChangesAsync();
+
+                var user = await _userManager.GetUserAsync(User);
+                await _auditLogRepo.LogAsync("Category", category.Id.ToString(), "Create", user?.Id ?? "System", user?.UserName ?? "System", $"Created category: {category.Name} ({category.ShortName})");
+
                 TempData["Success"] = "Category created successfully!";
                 return RedirectToAction(nameof(Index));
             }
@@ -57,8 +66,13 @@ namespace CityMarketPOS.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
+                var oldCategory = await _categoryRepo.GetByIdAsync(id);
                 _categoryRepo.Update(category);
                 await _categoryRepo.SaveChangesAsync();
+
+                var user = await _userManager.GetUserAsync(User);
+                await _auditLogRepo.LogAsync("Category", category.Id.ToString(), "Update", user?.Id ?? "System", user?.UserName ?? "System", $"Updated category: {category.Name} ({category.ShortName})", oldValues: $"Old: {oldCategory?.Name} ({oldCategory?.ShortName})", newValues: $"New: {category.Name} ({category.ShortName})");
+
                 TempData["Success"] = "Category updated successfully!";
                 return RedirectToAction(nameof(Index));
             }
@@ -73,8 +87,13 @@ namespace CityMarketPOS.Controllers
             var category = await _categoryRepo.GetByIdAsync(id);
             if (category != null)
             {
+                var categoryName = category.Name;
                 _categoryRepo.Delete(category);
                 await _categoryRepo.SaveChangesAsync();
+
+                var user = await _userManager.GetUserAsync(User);
+                await _auditLogRepo.LogAsync("Category", id.ToString(), "Delete", user?.Id ?? "System", user?.UserName ?? "System", $"Deleted category: {categoryName}");
+
                 TempData["Success"] = "Category deleted successfully!";
             }
             return RedirectToAction(nameof(Index));

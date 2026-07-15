@@ -1,0 +1,107 @@
+@{
+    ViewData["Title"] = "Inventory Valuation";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Inventory Valuation</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Home">Home</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Sales Reports</a></li>
+                    <li class="breadcrumb-item active">Inventory Valuation</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3>@ViewBag.TotalValue:F2</h3>
+                        <p>Total Stock Value</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>@ViewBag.TotalRevenue:F2</h3>
+                        <p>Potential Revenue</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3>@ViewBag.TotalProfit:F2</h3>
+                        <p>Potential Profit</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Stock Valuation by Category</h3>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Total Stock</th>
+                            <th>Total Value</th>
+                            <th>Potential Revenue</th>
+                            <th>Profit Margin</th>
+                            <th>Profit %</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (ViewBag.StockByCategory != null)
+                        {
+                            foreach (var item in ViewBag.StockByCategory)
+                            {
+                                var profitPercentage = item.TotalValue > 0 ? (item.ProfitMargin / item.TotalValue) * 100 : 0;
+                                <tr>
+                                    <td>@item.CategoryName</td>
+                                    <td>@item.TotalStock</td>
+                                    <td>@item.TotalValue:F2</td>
+                                    <td>@item.PotentialRevenue:F2</td>
+                                    <td>@item.ProfitMargin:F2</td>
+                                    <td>
+                                        <span class="badge badge-@(profitPercentage >= 30 ? "success" : profitPercentage >= 15 ? "warning" : "danger")">
+                                            @profitPercentage:F1%
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Reports
+            </a>
+        </div>
+    </div>
+</div>

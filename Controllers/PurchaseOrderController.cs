@@ -1,6 +1,8 @@
 ﻿using CityMarketPOS.Models;
 using CityMarketPOS.Models.ViewModels;
 using CityMarketPOS.Repositories;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -11,15 +13,20 @@ using System.Collections.Generic;
 
 namespace CityMarketPOS.Controllers
 {
+    [Authorize(Roles = "Manager,Inventory")]
     public class PurchaseOrderController : Controller
     {
         private readonly IPurchaseOrderRepository _poRepo;
         private readonly ApplicationDbContext _context;
+        private readonly IAuditLogRepository _auditLogRepo;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public PurchaseOrderController(IPurchaseOrderRepository poRepo, ApplicationDbContext context)
+        public PurchaseOrderController(IPurchaseOrderRepository poRepo, ApplicationDbContext context, IAuditLogRepository auditLogRepo, UserManager<ApplicationUser> userManager)
         {
             _poRepo = poRepo;
             _context = context;
+            _auditLogRepo = auditLogRepo;
+            _userManager = userManager;
         }
 
         public async Task<IActionResult> Index()
@@ -115,6 +122,9 @@ namespace CityMarketPOS.Controllers
 
             await _poRepo.AddAsync(po);
             await _poRepo.SaveChangesAsync();
+
+            var user = await _userManager.GetUserAsync(User);
+            await _auditLogRepo.LogAsync("PurchaseOrder", po.Id.ToString(), "Create", user?.Id ?? "System", user?.UserName ?? "System", $"Created Purchase Order: {po.PONumber} with {orderDetails.Count} items, Total: {calculatedTotalAmount:F2}");
 
             TempData["Success"] = "Purchase Order created successfully!";
             return RedirectToAction(nameof(Index));

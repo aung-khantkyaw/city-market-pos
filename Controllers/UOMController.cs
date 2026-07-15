@@ -1,6 +1,7 @@
 ﻿using CityMarketPOS.Models;
 using CityMarketPOS.Repositories;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CityMarketPOS.Controllers
@@ -9,10 +10,14 @@ namespace CityMarketPOS.Controllers
     public class UOMController : Controller
     {
         private readonly IUOMRepository _uomRepo;
+        private readonly IAuditLogRepository _auditLogRepo;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public UOMController(IUOMRepository uomRepo)
+        public UOMController(IUOMRepository uomRepo, IAuditLogRepository auditLogRepo, UserManager<ApplicationUser> userManager)
         {
             _uomRepo = uomRepo;
+            _auditLogRepo = auditLogRepo;
+            _userManager = userManager;
         }
 
         public async Task<IActionResult> Index()
@@ -29,6 +34,10 @@ namespace CityMarketPOS.Controllers
             {
                 await _uomRepo.AddAsync(uom);
                 await _uomRepo.SaveChangesAsync();
+
+                var user = await _userManager.GetUserAsync(User);
+                await _auditLogRepo.LogAsync("UOM", uom.Id.ToString(), "Create", user?.Id ?? "System", user?.UserName ?? "System", $"Created UOM: {uom.Name} ({uom.ShortName})");
+
                 TempData["Success"] = "UOM created successfully!";
                 return RedirectToAction(nameof(Index));
             }
@@ -43,8 +52,13 @@ namespace CityMarketPOS.Controllers
 
             if (ModelState.IsValid)
             {
+                var oldUOM = await _uomRepo.GetByIdAsync(id);
                 _uomRepo.Update(uom);
                 await _uomRepo.SaveChangesAsync();
+
+                var user = await _userManager.GetUserAsync(User);
+                await _auditLogRepo.LogAsync("UOM", uom.Id.ToString(), "Update", user?.Id ?? "System", user?.UserName ?? "System", $"Updated UOM: {uom.Name} ({uom.ShortName})", oldValues: $"Old: {oldUOM?.Name} ({oldUOM?.ShortName})", newValues: $"New: {uom.Name} ({uom.ShortName})");
+
                 TempData["Success"] = "UOM updated successfully!";
                 return RedirectToAction(nameof(Index));
             }
@@ -58,8 +72,13 @@ namespace CityMarketPOS.Controllers
             var uom = await _uomRepo.GetByIdAsync(id);
             if (uom != null)
             {
+                var uomName = uom.Name;
                 _uomRepo.Delete(uom);
                 await _uomRepo.SaveChangesAsync();
+
+                var user = await _userManager.GetUserAsync(User);
+                await _auditLogRepo.LogAsync("UOM", id.ToString(), "Delete", user?.Id ?? "System", user?.UserName ?? "System", $"Deleted UOM: {uomName}");
+
                 TempData["Success"] = "UOM deleted successfully!";
             }
             return RedirectToAction(nameof(Index));

@@ -1,0 +1,187 @@
+@{
+    ViewData["Title"] = "Sales Reports";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Sales Reports</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Home">Home</a></li>
+                    <li class="breadcrumb-item active">Sales Reports</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3>@ViewBag.TotalStockValue:F2</h3>
+                        <p>Total Stock Value</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>@ViewBag.TotalStockSellingValue:F2</h3>
+                        <p>Potential Revenue</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3>@ViewBag.PotentialProfit:F2</h3>
+                        <p>Potential Profit</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="small-box bg-primary">
+                    <div class="inner">
+                        <h3>@ViewBag.TotalProducts</h3>
+                        <p>Total Products</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-box"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Inventory Summary</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-info"><i class="fas fa-tags"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Total Categories</span>
+                                        <span class="info-box-number">@ViewBag.TotalCategories</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-success"><i class="fas fa-truck"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Total Suppliers</span>
+                                        <span class="info-box-number">@ViewBag.TotalSuppliers</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-danger"><i class="fas fa-exclamation-triangle"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Low Stock Items</span>
+                                        <span class="info-box-number">@ViewBag.LowStockItems</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-warning"><i class="fas fa-calendar-times"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Expiring Items</span>
+                                        <span class="info-box-number">@ViewBag.ExpiringItems</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Quick Actions</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="btn-group w-100 mb-2">
+                            <a asp-action="InventoryValuation" class="btn btn-info">
+                                <i class="fas fa-calculator"></i> Inventory Valuation
+                            </a>
+                        </div>
+                        <div class="btn-group w-100 mb-2">
+                            <a asp-action="StockMovement" class="btn btn-success">
+                                <i class="fas fa-exchange-alt"></i> Stock Movement
+                            </a>
+                        </div>
+                        <div class="btn-group w-100">
+                            <a asp-action="Index" asp-controller="AuditLog" class="btn btn-warning">
+                                <i class="fas fa-history"></i> Audit Logs
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Stock Distribution by Category</h3>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Total Quantity</th>
+                            <th>Total Value</th>
+                            <th>Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (ViewBag.CategoryDistribution != null)
+                        {
+                            var categoryDistribution = (System.Collections.Generic.IEnumerable<dynamic>)ViewBag.CategoryDistribution;
+                            var totalValue = categoryDistribution.Sum(x => (decimal)x.TotalValue);
+                            foreach (var item in categoryDistribution)
+                            {
+                                var percentage = totalValue > 0 ? ((decimal)item.TotalValue / totalValue) * 100 : 0;
+                                <tr>
+                                    <td>@item.Category</td>
+                                    <td>@item.TotalQuantity</td>
+                                    <td>@item.TotalValue:F2</td>
+                                    <td>
+                                        <div class="progress">
+                                            <div class="progress-bar bg-info" style="width: @percentage%">
+                                                @percentage:F1%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

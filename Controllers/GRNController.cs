@@ -17,12 +17,14 @@ namespace CityMarketPOS.Controllers
         private readonly IGRNRepository _grnRepo;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
+        private readonly IAuditLogRepository _auditLogRepo;
 
-        public GRNController(IGRNRepository grnRepo, UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        public GRNController(IGRNRepository grnRepo, UserManager<ApplicationUser> userManager, ApplicationDbContext context, IAuditLogRepository auditLogRepo)
         {
             _grnRepo = grnRepo;
             _userManager = userManager;
             _context = context;
+            _auditLogRepo = auditLogRepo;
         }
 
         public async Task<IActionResult> Index()
@@ -90,6 +92,8 @@ namespace CityMarketPOS.Controllers
 
             // Updated Repository Call: removed code inputs
             await _grnRepo.ConfirmGRNAndUpdateStockAsync(grn, ProductId, ReceivedQty, ExpiryDate, SellingPrice, poId);
+
+            await _auditLogRepo.LogAsync("GRN", grn.Id.ToString(), "Create", userId, user?.UserName ?? "System", $"Created GRN: {grn.GRNNumber} for PO ID: {poId} with {ProductId.Count} items");
 
             return RedirectToAction(nameof(Index));
         }

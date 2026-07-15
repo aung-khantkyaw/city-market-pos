@@ -1,0 +1,126 @@
+@model CityMarketPOS.Models.AuditLog
+
+@{
+    ViewData["Title"] = "Audit Log Details";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Audit Log Details</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Home">Home</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Audit Logs</a></li>
+                    <li class="breadcrumb-item active">Details</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content">
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Log Entry Information</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Timestamp</label>
+                            <p class="form-control-static">@Model.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Action</label>
+                            <p class="form-control-static">
+                                <span class="badge badge-@(Model.Action == "Create" ? "success" : Model.Action == "Delete" ? "danger" : "warning")">
+                                    @Model.Action
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Entity Type</label>
+                            <p class="form-control-static">@Model.EntityType</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Entity ID</label>
+                            <p class="form-control-static">@Model.EntityId</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>User Name</label>
+                            <p class="form-control-static">@Model.UserName</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>User ID</label>
+                            <p class="form-control-static">@Model.UserId</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label>Description</label>
+                            <p class="form-control-static">@Model.Description</p>
+                        </div>
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.OldValues))
+                {
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Old Values</label>
+                                <pre class="form-control-static">@Model.OldValues</pre>
+                            </div>
+                        </div>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.NewValues))
+                {
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>New Values</label>
+                                <pre class="form-control-static">@Model.NewValues</pre>
+                            </div>
+                        </div>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.IpAddress))
+                {
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>IP Address</label>
+                                <p class="form-control-static">@Model.IpAddress</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="card-footer">
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

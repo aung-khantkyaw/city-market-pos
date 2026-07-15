@@ -1,0 +1,127 @@
+@model IEnumerable<CityMarketPOS.Models.AuditLog>
+
+@{
+    ViewData["Title"] = "Audit Logs";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Audit Logs</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Home">Home</a></li>
+                    <li class="breadcrumb-item active">Audit Logs</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content">
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">System Activity Log</h3>
+            </div>
+            <div class="card-body">
+                <form asp-action="Index" method="get" class="mb-3">
+                    <div class="row">
+                        <div class="col-md-2">
+                            <select name="entityType" class="form-control">
+                                <option value="">All Entity Types</option>
+                                @if (ViewBag.EntityTypes != null)
+                                {
+                                    @foreach (var type in ViewBag.EntityTypes)
+                                    {
+                                        <option value="@type" selected="@(ViewBag.SelectedEntityType == type)">@type</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select name="auditAction" class="form-control">
+                                <option value="">All Actions</option>
+                                @if (ViewBag.Actions != null)
+                                {
+                                    @foreach (var act in ViewBag.Actions)
+                                    {
+                                        <option value="@act" selected="@(ViewBag.SelectedAction == act)">@act</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select name="userId" class="form-control">
+                                <option value="">All Users</option>
+                                @if (ViewBag.Users != null)
+                                {
+                                    @foreach (var user in ViewBag.Users)
+                                    {
+                                        <option value="@user.UserId" selected="@(ViewBag.SelectedUserId == user.UserId)">@user.UserName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" name="search" class="form-control" placeholder="Search..." value="@ViewBag.Search" />
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Filter
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Clear
+                            </a>
+                        </div>
+                    </div>
+                </form>
+
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>User</th>
+                            <th>Entity Type</th>
+                            <th>Action</th>
+                            <th>Description</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var log in Model)
+                            {
+                                <tr>
+                                    <td>@log.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                                    <td>@log.UserName</td>
+                                    <td>@log.EntityType</td>
+                                    <td>
+                                        <span class="badge badge-@(log.Action == "Create" ? "success" : log.Action == "Delete" ? "danger" : "warning")">
+                                            @log.Action
+                                        </span>
+                                    </td>
+                                    <td>@log.Description</td>
+                                    <td>
+                                        <a asp-action="Details" asp-route-id="@log.Id" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center">No audit logs found</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

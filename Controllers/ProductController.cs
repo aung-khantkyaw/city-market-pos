@@ -1,6 +1,7 @@
 ﻿using CityMarketPOS.Models;
 using CityMarketPOS.Repositories;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -14,11 +15,15 @@ namespace CityMarketPOS.Controllers
     {
         private readonly IProductRepository _prodRepo;
         private readonly ApplicationDbContext _context;
+        private readonly IAuditLogRepository _auditLogRepo;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public ProductController(IProductRepository prodRepo, ApplicationDbContext context)
+        public ProductController(IProductRepository prodRepo, ApplicationDbContext context, IAuditLogRepository auditLogRepo, UserManager<ApplicationUser> userManager)
         {
             _prodRepo = prodRepo;
             _context = context;
+            _auditLogRepo = auditLogRepo;
+            _userManager = userManager;
         }
 
         public async Task<IActionResult> Index() => View(await _prodRepo.GetAllAsync());
@@ -42,6 +47,10 @@ namespace CityMarketPOS.Controllers
             {
                 await _prodRepo.AddAsync(product);
                 await _prodRepo.SaveChangesAsync();
+
+                var user = await _userManager.GetUserAsync(User);
+                await _auditLogRepo.LogAsync("Product", product.Id.ToString(), "Create", user?.Id ?? "System", user?.UserName ?? "System", $"Created product: {product.Name}");
+
                 TempData["Success"] = "Product added successfully!";
                 return RedirectToAction(nameof(Index));
             }
@@ -77,6 +86,7 @@ namespace CityMarketPOS.Controllers
                     var existingProduct = await _prodRepo.GetByIdAsync(id);
                     if (existingProduct == null) return NotFound();
 
+                    var oldName = existingProduct.Name;
                     existingProduct.Name = product.Name;
                     existingProduct.CategoryId = product.CategoryId;
                     existingProduct.UOMId = product.UOMId;
@@ -84,6 +94,10 @@ namespace CityMarketPOS.Controllers
 
                     _prodRepo.Update(existingProduct);
                     await _prodRepo.SaveChangesAsync();
+
+                    var user = await _userManager.GetUserAsync(User);
+                    await _auditLogRepo.LogAsync("Product", product.Id.ToString(), "Update", user?.Id ?? "System", user?.UserName ?? "System", $"Updated product: {product.Name}", oldValues: $"Old: {oldName}", newValues: $"New: {product.Name}");
+
                     TempData["Success"] = "Product updated successfully!";
                 }
                 catch (DbUpdateConcurrencyException)
@@ -105,8 +119,13 @@ namespace CityMarketPOS.Controllers
             var prod = await _prodRepo.GetByIdAsync(id);
             if (prod != null)
             {
+                var productName = prod.Name;
                 _prodRepo.Delete(prod);
                 await _prodRepo.SaveChangesAsync();
+
+                var user = await _userManager.GetUserAsync(User);
+                await _auditLogRepo.LogAsync("Product", id.ToString(), "Delete", user?.Id ?? "System", user?.UserName ?? "System", $"Deleted product: {productName}");
+
                 TempData["Success"] = "Product deleted successfully!";
             }
             return RedirectToAction(nameof(Index));

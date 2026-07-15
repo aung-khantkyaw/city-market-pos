@@ -1,6 +1,7 @@
 ﻿using CityMarketPOS.Models;
 using CityMarketPOS.Repositories;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -15,12 +16,16 @@ namespace CityMarketPOS.Controllers
         private readonly ISupplierRepository _supplierRepo;
         private readonly IProductRepository _productRepo;
         private readonly ApplicationDbContext _context;
+        private readonly IAuditLogRepository _auditLogRepo;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public SupplierController(ISupplierRepository supplierRepo, IProductRepository productRepo, ApplicationDbContext context)
+        public SupplierController(ISupplierRepository supplierRepo, IProductRepository productRepo, ApplicationDbContext context, IAuditLogRepository auditLogRepo, UserManager<ApplicationUser> userManager)
         {
             _supplierRepo = supplierRepo;
             _productRepo = productRepo;
             _context = context;
+            _auditLogRepo = auditLogRepo;
+            _userManager = userManager;
         }
 
         public async Task<IActionResult> Index()
@@ -65,6 +70,10 @@ namespace CityMarketPOS.Controllers
 
                 await _supplierRepo.AddAsync(supplier);
                 await _supplierRepo.SaveChangesAsync();
+
+                var user = await _userManager.GetUserAsync(User);
+                await _auditLogRepo.LogAsync("Supplier", supplier.Id.ToString(), "Create", user?.Id ?? "System", user?.UserName ?? "System", $"Created supplier: {supplier.Name}");
+
                 TempData["Success"] = "Supplier added successfully!";
                 return RedirectToAction(nameof(Index));
             }
@@ -102,6 +111,7 @@ namespace CityMarketPOS.Controllers
                 var existingSupplier = await _supplierRepo.GetByIdAsync(id);
                 if (existingSupplier == null) return NotFound();
 
+                var oldName = existingSupplier.Name;
                 existingSupplier.Name = supplier.Name;
                 existingSupplier.ContactPerson = supplier.ContactPerson;
                 existingSupplier.Email = supplier.Email;
@@ -132,6 +142,10 @@ namespace CityMarketPOS.Controllers
 
                 _supplierRepo.Update(existingSupplier);
                 await _supplierRepo.SaveChangesAsync();
+
+                var user = await _userManager.GetUserAsync(User);
+                await _auditLogRepo.LogAsync("Supplier", supplier.Id.ToString(), "Update", user?.Id ?? "System", user?.UserName ?? "System", $"Updated supplier: {supplier.Name}", oldValues: $"Old: {oldName}", newValues: $"New: {supplier.Name}");
+
                 TempData["Success"] = "Supplier updated successfully!";
                 return RedirectToAction(nameof(Index));
             }
@@ -150,8 +164,13 @@ namespace CityMarketPOS.Controllers
             var supplier = await _supplierRepo.GetByIdAsync(id);
             if (supplier != null)
             {
+                var supplierName = supplier.Name;
                 _supplierRepo.Delete(supplier);
                 await _supplierRepo.SaveChangesAsync();
+
+                var user = await _userManager.GetUserAsync(User);
+                await _auditLogRepo.LogAsync("Supplier", id.ToString(), "Delete", user?.Id ?? "System", user?.UserName ?? "System", $"Deleted supplier: {supplierName}");
+
                 TempData["Success"] = "Supplier deleted successfully!";
             }
             return RedirectToAction(nameof(Index));

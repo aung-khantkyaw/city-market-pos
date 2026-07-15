@@ -1,0 +1,202 @@
+@model CityMarketPOS.Models.GRNDetail
+
+@{
+    ViewData["Title"] = "Expiry Item Details";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Expiry Item Details</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Home">Home</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Expiry Management</a></li>
+                    <li class="breadcrumb-item active">Details</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content">
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Item Information</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Product</label>
+                            <p class="form-control-static">@Model.Product?.Name</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Item Code</label>
+                            <p class="form-control-static">@Model.ItemCode</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Category</label>
+                            <p class="form-control-static">@Model.Product?.Category?.Name</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Expiry Date</label>
+                            <p class="form-control-static">@Model.ExpiryDate?.ToString("yyyy-MM-dd")</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Current Stock</label>
+                            <p class="form-control-static">@Model.CurrentStockQuantity</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Days Until Expiry</label>
+                            @{
+                                var daysUntilExpiry = (Model.ExpiryDate - DateTime.Now).Value.Days;
+                            }
+                            <p class="form-control-static">
+                                <span class="badge badge-@(daysUntilExpiry < 0 ? "danger" : daysUntilExpiry <= 7 ? "warning" : "info")">
+                                    @daysUntilExpiry days
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Purchase Price</label>
+                            <p class="form-control-static">@Model.PurchasePrice:F2</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Selling Price</label>
+                            <p class="form-control-static">@Model.SellingPrice:F2</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label>GRN Number</label>
+                            <p class="form-control-static">@Model.GRN?.GRNNumber</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+                <button onclick="showWriteOffModal(@Model.Id, '@Model.Product?.Name', @Model.CurrentStockQuantity)" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Write Off
+                </button>
+                <button onclick="showDiscountModal(@Model.Id, '@Model.Product?.Name', @Model.SellingPrice)" class="btn btn-warning">
+                    <i class="fas fa-percent"></i> Apply Discount
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Write Off Modal -->
+<div class="modal fade" id="writeOffModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Write Off Item</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form asp-action="WriteOff" method="post">
+                    <input type="hidden" id="writeOffId" name="id" />
+                    <div class="form-group">
+                        <label>Product</label>
+                        <input type="text" id="writeOffProduct" class="form-control" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Quantity to Write Off</label>
+                        <input type="text" id="writeOffQuantity" class="form-control" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Reason</label>
+                        <input type="text" name="reason" class="form-control" required placeholder="e.g., Expired, Damaged" />
+                    </div>
+                    <button type="submit" class="btn btn-danger">Write Off</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Discount Modal -->
+<div class="modal fade" id="discountModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Apply Discount</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form asp-action="Discount" method="post">
+                    <input type="hidden" id="discountId" name="id" />
+                    <div class="form-group">
+                        <label>Product</label>
+                        <input type="text" id="discountProduct" class="form-control" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Current Price</label>
+                        <input type="text" id="discountCurrentPrice" class="form-control" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Discount Percentage (%)</label>
+                        <input type="number" name="discountPercentage" class="form-control" min="1" max="100" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Reason</label>
+                        <input type="text" name="reason" class="form-control" required placeholder="e.g., Expiring soon, Clearance" />
+                    </div>
+                    <button type="submit" class="btn btn-warning">Apply Discount</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function showWriteOffModal(id, productName, quantity) {
+            document.getElementById('writeOffId').value = id;
+            document.getElementById('writeOffProduct').value = productName;
+            document.getElementById('writeOffQuantity').value = quantity;
+            $('#writeOffModal').modal('show');
+        }
+
+        function showDiscountModal(id, productName, currentPrice) {
+            document.getElementById('discountId').value = id;
+            document.getElementById('discountProduct').value = productName;
+            document.getElementById('discountCurrentPrice').value = currentPrice.toFixed(2);
+            $('#discountModal').modal('show');
+        }
+    </script>
+}

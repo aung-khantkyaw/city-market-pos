@@ -1,0 +1,89 @@
+@model IEnumerable<CityMarketPOS.Models.StockTaking>
+
+@{
+    ViewData["Title"] = "Stock Taking";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Stock Taking</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Home">Home</a></li>
+                    <li class="breadcrumb-item active">Stock Taking</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content">
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Stock Taking History</h3>
+                <div class="card-tools">
+                    <a asp-action="Create" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus"></i> New Stock Taking
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Stock Taking #</th>
+                            <th>Date</th>
+                            <th>Conducted By</th>
+                            <th>Status</th>
+                            <th>Items Counted</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@item.StockTakingNumber</td>
+                                    <td>@item.TakingDate.ToString("yyyy-MM-dd HH:mm")</td>
+                                    <td>@item.ConductedByUserName</td>
+                                    <td>
+                                        <span class="badge badge-@(item.Status == "Completed" ? "success" : item.Status == "In Progress" ? "warning" : "danger")">
+                                            @item.Status
+                                        </span>
+                                    </td>
+                                    <td>@item.Details.Count</td>
+                                    <td>
+                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        @if (item.Status == "In Progress")
+                                        {
+                                            <a asp-action="AddDetails" asp-route-id="@item.Id" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-plus"></i>
+                                            </a>
+                                            <a asp-action="Complete" asp-route-id="@item.Id" class="btn btn-sm btn-success">
+                                                <i class="fas fa-check"></i>
+                                            </a>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center">No stock taking records found</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
