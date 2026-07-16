@@ -150,7 +150,7 @@
                                 <th>Discount</th>
                                 <th>Total</th>
                                 <th>Payment</th>
-                                <th>Actions</th>
+                                @* <th>Actions</th> *@
                             </tr>
                         </thead>
                         <tbody>
@@ -167,11 +167,11 @@
                                     <td>@sale.Discount.ToString("F2")</td>
                                     <td><strong>@sale.GrandTotal.ToString("F2")</strong></td>
                                     <td><span class="badge badge-success">@sale.PaymentMethod</span></td>
-                                    <td>
+                                    @* <td>
                                         <a asp-action="SessionReport" asp-route-sessionId="@sale.POSSessionId" class="btn btn-sm btn-info">
                                             <i class="fas fa-file-invoice"></i> Session
                                         </a>
-                                    </td>
+                                    </td> *@
                                 </tr>
                             }
                         </tbody>

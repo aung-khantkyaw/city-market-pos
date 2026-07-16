@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Linq; // OrderByDescending အတွက် လိုအပ်ပါတယ်
 using System.Threading.Tasks;
 
 namespace CityMarketPOS.Controllers
@@ -28,15 +29,20 @@ namespace CityMarketPOS.Controllers
 
         public async Task<IActionResult> SelectCounter()
         {
-            // Check if user already has an active session
             var userId = _userManager.GetUserId(User);
+
+            // FIX: မပိတ်ဘဲကျန်ခဲ့တဲ့ Session တွေရှိနေရင်တောင် နောက်ဆုံးအသစ်ကိုပဲ ယူရန် OrderByDescending ထည့်ထားပါတယ်
             var activeSession = await _context.POSSessions
                 .Include(s => s.Counter)
+                .OrderByDescending(s => s.StartTime)
                 .FirstOrDefaultAsync(s => s.UserId == userId && s.Status == "Active");
 
             if (activeSession != null)
             {
-                // Redirect to POS Terminal if already has active session
+                // FIX: Session ပျောက်သွားခဲ့ရင် ပြန်ထည့်ပေးရန် (ဒါမှ POSTerminal ရောက်ရင် Redirect Loop မဖြစ်မှာပါ)
+                HttpContext.Session.SetInt32("POSSessionId", activeSession.Id);
+                HttpContext.Session.SetInt32("CounterId", activeSession.CounterId);
+
                 return RedirectToAction("Index", "POSTerminal");
             }
 
@@ -99,9 +105,26 @@ namespace CityMarketPOS.Controllers
         public async Task<IActionResult> EndSession()
         {
             var userId = _userManager.GetUserId(User);
-            var session = await _context.POSSessions
-                .Include(s => s.Counter)
-                .FirstOrDefaultAsync(s => s.UserId == userId && s.Status == "Active");
+
+            // FIX: လက်ရှိရောင်းချနေတဲ့ HttpContext ထဲက Session ID ကိုပဲ အတိအကျ သွားယူပါမယ်
+            var currentSessionId = HttpContext.Session.GetInt32("POSSessionId");
+            POSSession session = null;
+
+            if (currentSessionId.HasValue)
+            {
+                session = await _context.POSSessions
+                    .Include(s => s.Counter)
+                    .FirstOrDefaultAsync(s => s.Id == currentSessionId.Value && s.Status == "Active");
+            }
+
+            // တကယ်လို့ HttpContext ထဲမှာ Session မရှိတော့ရင် (Fallback) အနေနဲ့ နောက်ဆုံး Active ဖြစ်တဲ့ဟာကို ယူပါမယ်
+            if (session == null)
+            {
+                session = await _context.POSSessions
+                    .Include(s => s.Counter)
+                    .OrderByDescending(s => s.StartTime)
+                    .FirstOrDefaultAsync(s => s.UserId == userId && s.Status == "Active");
+            }
 
             if (session != null)
             {
@@ -148,9 +171,7 @@ namespace CityMarketPOS.Controllers
                 var user = await _userManager.GetUserAsync(User);
                 await _auditLogRepo.LogAsync("POSSession", session.Id.ToString(), "Close", user?.Id ?? "System", user?.UserName ?? "System", $"Ended POS session at counter: {session.Counter.Name}");
 
-                // Logout
-                await _signInManager.SignOutAsync();
-                return RedirectToAction("Login", "Account");
+                return RedirectToAction("Index", "Home");
             }
 
             return RedirectToAction("Index", "Home");

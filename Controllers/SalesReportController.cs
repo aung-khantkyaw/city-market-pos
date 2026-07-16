@@ -22,18 +22,19 @@ namespace CityMarketPOS.Controllers
 
         public async Task<IActionResult> Index(DateTime? startDate = null, DateTime? endDate = null, string cashierId = null, int? counterId = null)
         {
-            // Default to today if no dates provided
             if (!startDate.HasValue)
                 startDate = DateTime.Today;
-            if (!endDate.HasValue)
-                endDate = DateTime.Today.AddDays(1).AddTicks(-1);
 
-            // Build query with filters
+            if (!endDate.HasValue)
+                endDate = DateTime.Today;
+
+            var actualEndDate = endDate.Value.Date.AddDays(1).AddTicks(-1);
+
             var query = _context.Sales
                 .Include(s => s.Details)
                 .Include(s => s.POSSession)
                     .ThenInclude(p => p.Counter)
-                .Where(s => s.SaleDate >= startDate.Value && s.SaleDate <= endDate.Value);
+                .Where(s => s.SaleDate >= startDate.Value.Date && s.SaleDate <= actualEndDate);
 
             if (!string.IsNullOrEmpty(cashierId))
             {
@@ -47,21 +48,18 @@ namespace CityMarketPOS.Controllers
 
             var sales = await query.OrderByDescending(s => s.SaleDate).ToListAsync();
 
-            // Calculate summary statistics
             var totalSales = sales.Count;
             var totalAmount = sales.Sum(s => s.GrandTotal);
             var totalItems = sales.Sum(s => s.Details.Sum(d => d.Quantity));
             var totalTax = sales.Sum(s => s.Tax);
             var totalDiscount = sales.Sum(s => s.Discount);
 
-            // Get cashiers for filter dropdown
             var cashiers = await _context.Sales
-                .Where(s => s.SaleDate >= startDate.Value && s.SaleDate <= endDate.Value)
+                .Where(s => s.SaleDate >= startDate.Value.Date && s.SaleDate <= actualEndDate)
                 .Select(s => new { s.CashierId, s.CashierName })
                 .Distinct()
                 .ToListAsync();
 
-            // Get counters for filter dropdown
             var counters = await _context.Counters
                 .Where(c => c.Status == "Active")
                 .ToListAsync();
