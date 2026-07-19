@@ -35,16 +35,17 @@ namespace CityMarketPOS.Controllers
 
         public async Task<IActionResult> Index()
         {
-            // Common data for all roles
+            // Common data for all roles - Group by ProductId to sum total stock across all GRNs
             var lowStockItems = await _context.GRNDetails
                 .Include(g => g.Product)
-                .Where(g => g.CurrentStockQuantity <= g.Product.MinStockLevel)
+                .GroupBy(g => g.ProductId)
                 .Select(g => new LowStockViewModel
                 {
-                    ProductName = g.Product.Name,
-                    MinStockLevel = g.Product.MinStockLevel,
-                    TotalCurrentStockQuantity = g.CurrentStockQuantity
+                    ProductName = g.First().Product.Name,
+                    MinStockLevel = g.First().Product.MinStockLevel,
+                    TotalCurrentStockQuantity = g.Sum(x => x.CurrentStockQuantity)
                 })
+                .Where(x => x.TotalCurrentStockQuantity <= x.MinStockLevel)
                 .ToListAsync();
 
             var targetDate = DateTime.Now.AddDays(7);

@@ -164,14 +164,14 @@ namespace CityMarketPOS.Controllers
             var supplier = await _supplierRepo.GetByIdAsync(id);
             if (supplier != null)
             {
-                var supplierName = supplier.Name;
-                _supplierRepo.Delete(supplier);
+                supplier.IsDeleted = true;
+                _supplierRepo.Update(supplier); 
                 await _supplierRepo.SaveChangesAsync();
 
                 var user = await _userManager.GetUserAsync(User);
-                await _auditLogRepo.LogAsync("Supplier", id.ToString(), "Delete", user?.Id ?? "System", user?.UserName ?? "System", $"Deleted supplier: {supplierName}");
+                await _auditLogRepo.LogAsync("Supplier", id.ToString(), "Soft Delete", user?.Id ?? "System", user?.UserName ?? "System", $"Soft deleted supplier: {supplier.Name}");
 
-                TempData["Success"] = "Supplier deleted successfully!";
+                TempData["Success"] = "Supplier removed successfully!";
             }
             return RedirectToAction(nameof(Index));
         }

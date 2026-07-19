@@ -43,5 +43,6 @@ namespace CityMarketPOS.Models
         
         [StringLength(100)]
         public string? ModifiedByUserName { get; set; }
+        public bool IsDeleted { get; set; } = false;
     }
 }

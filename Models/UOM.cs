@@ -12,5 +12,6 @@ namespace CityMarketPOS.Models
 
         [Required, StringLength(10)]
         public string ShortName { get; set; } // e.g., KG, PCS, BOX
+        public bool IsDeleted { get; set; } = false;
     }
 }

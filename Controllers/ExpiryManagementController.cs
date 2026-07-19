@@ -66,24 +66,90 @@ namespace CityMarketPOS.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        public async Task<IActionResult> Discount(int id, decimal discountPercentage, string reason)
+        public async Task<IActionResult> Reorder(int id)
         {
             var grnDetail = await _context.GRNDetails
                 .Include(g => g.Product)
+                .Include(g => g.GRN)
+                    .ThenInclude(grn => grn.PurchaseOrder)
+                        .ThenInclude(po => po.Supplier)
                 .FirstOrDefaultAsync(g => g.Id == id);
 
             if (grnDetail == null) return NotFound();
 
-            var originalPrice = grnDetail.SellingPrice;
-            grnDetail.SellingPrice = originalPrice * (1 - discountPercentage / 100);
-            _context.GRNDetails.Update(grnDetail);
+            // Prepare PO details for confirmation dialog
+            var suppliers = await _context.Suppliers.OrderBy(s => s.Name).ToListAsync();
+
+            ViewBag.GRNDetail = grnDetail;
+            ViewBag.Suppliers = suppliers;
+            ViewBag.PONumber = "PO-" + DateTime.Now.ToString("yyyyMMdd-HHmmss");
+            ViewBag.SelectedSupplierId = grnDetail.GRN?.PurchaseOrder?.SupplierId;
+            ViewBag.Quantity = grnDetail.CurrentStockQuantity;
+            ViewBag.UnitPrice = grnDetail.PurchasePrice;
+            ViewBag.TotalPrice = grnDetail.CurrentStockQuantity * grnDetail.PurchasePrice;
+
+            return View("ReorderConfirm");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ConfirmReorder(int grnDetailId, string poNumber, int supplierId, List<PurchaseOrderDetailItem> items)
+        {
+            var grnDetail = await _context.GRNDetails
+                .Include(g => g.Product)
+                .FirstOrDefaultAsync(g => g.Id == grnDetailId);
+
+            if (grnDetail == null) return NotFound();
+
+            if (items == null || !items.Any())
+            {
+                TempData["Error"] = "Please add at least one product to the order.";
+                return RedirectToAction("Reorder", new { id = grnDetailId });
+            }
+
+            // Calculate total amount
+            var totalAmount = items.Sum(i => i.Quantity * i.UnitPrice);
+
+            // Create a new purchase order with the confirmed details
+            var purchaseOrder = new PurchaseOrder
+            {
+                PONumber = poNumber,
+                OrderDate = DateTime.Now,
+                ExpectedDate = DateTime.Now.AddDays(7),
+                SupplierId = supplierId,
+                Status = "Pending",
+                TotalAmount = totalAmount
+            };
+
+            _context.PurchaseOrders.Add(purchaseOrder);
+            await _context.SaveChangesAsync();
+
+            // Add products to purchase order details
+            foreach (var item in items)
+            {
+                var purchaseOrderDetail = new PurchaseOrderDetail
+                {
+                    PurchaseOrderId = purchaseOrder.Id,
+                    ProductId = item.ProductId,
+                    Quantity = item.Quantity,
+                    UnitPrice = item.UnitPrice
+                };
+
+                _context.PurchaseOrderDetails.Add(purchaseOrderDetail);
+            }
             await _context.SaveChangesAsync();
 
             var user = await _userManager.GetUserAsync(User);
-            await _auditLogRepo.LogAsync("ExpiryManagement", id.ToString(), "Discount", user?.Id ?? "System", user?.UserName ?? "System", $"Applied {discountPercentage}% discount to {grnDetail.Product.Name} - Original: {originalPrice:F2}, New: {grnDetail.SellingPrice:F2} - Reason: {reason}");
+            await _auditLogRepo.LogAsync("ExpiryManagement", grnDetailId.ToString(), "Reorder", user?.Id ?? "System", user?.UserName ?? "System", $"Created reorder PO #{purchaseOrder.PONumber} for {grnDetail.Product.Name} (Qty: {items.Sum(i => i.Quantity)})");
 
-            TempData["Success"] = "Discount applied successfully!";
-            return RedirectToAction(nameof(Index));
+            TempData["Success"] = $"Purchase Order #{purchaseOrder.PONumber} created successfully!";
+            return RedirectToAction("Details", "PurchaseOrder", new { id = purchaseOrder.Id });
+        }
+
+        public class PurchaseOrderDetailItem
+        {
+            public int ProductId { get; set; }
+            public int Quantity { get; set; }
+            public decimal UnitPrice { get; set; }
         }
 
         public async Task<IActionResult> Details(int id)

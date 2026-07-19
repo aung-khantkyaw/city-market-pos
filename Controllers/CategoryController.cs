@@ -87,14 +87,14 @@ namespace CityMarketPOS.Controllers
             var category = await _categoryRepo.GetByIdAsync(id);
             if (category != null)
             {
-                var categoryName = category.Name;
-                _categoryRepo.Delete(category);
+                category.IsDeleted = true;
+                _categoryRepo.Update(category);
                 await _categoryRepo.SaveChangesAsync();
 
                 var user = await _userManager.GetUserAsync(User);
-                await _auditLogRepo.LogAsync("Category", id.ToString(), "Delete", user?.Id ?? "System", user?.UserName ?? "System", $"Deleted category: {categoryName}");
+                await _auditLogRepo.LogAsync("Category", id.ToString(), "Soft Delete", user?.Id ?? "System", user?.UserName ?? "System", $"Soft deleted category: {category.Name}");
 
-                TempData["Success"] = "Category deleted successfully!";
+                TempData["Success"] = "Category removed successfully!";
             }
             return RedirectToAction(nameof(Index));
         }

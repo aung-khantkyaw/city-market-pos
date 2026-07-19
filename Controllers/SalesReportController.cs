@@ -120,17 +120,7 @@ namespace CityMarketPOS.Controllers
                 .Take(50)
                 .ToListAsync();
 
-            // Get recent stock takings
-            var recentStockTakings = await _context.StockTakings
-                .Include(s => s.Details)
-                    .ThenInclude(d => d.GRNDetail)
-                        .ThenInclude(g => g.Product)
-                .OrderByDescending(s => s.TakingDate)
-                .Take(20)
-                .ToListAsync();
-
             ViewBag.RecentAdjustments = recentAdjustments;
-            ViewBag.RecentStockTakings = recentStockTakings;
 
             return View();
         }

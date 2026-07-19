@@ -116,11 +116,12 @@ namespace CityMarketPOS.Controllers
             var counter = await _counterRepo.GetByIdAsync(id);
             if (counter == null) return NotFound();
 
-            _counterRepo.Delete(counter);
+            counter.IsDeleted = true;
+            _counterRepo.Update(counter);
             await _counterRepo.SaveChangesAsync();
 
             var user = await _userManager.GetUserAsync(User);
-            await _auditLogRepo.LogAsync("Counter", counter.Id.ToString(), "Delete", user?.Id ?? "System", user?.UserName ?? "System", $"Deleted counter: {counter.Name}");
+            await _auditLogRepo.LogAsync("Counter", counter.Id.ToString(), "Soft Delete", user?.Id ?? "System", user?.UserName ?? "System", $"Soft deleted counter: {counter.Name}");
 
             return RedirectToAction(nameof(Index));
         }

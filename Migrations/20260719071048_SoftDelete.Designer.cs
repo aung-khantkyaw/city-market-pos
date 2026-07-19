@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CityMarketPOS.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260719071048_SoftDelete")]
+    partial class SoftDelete
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -632,6 +635,82 @@ namespace CityMarketPOS.Migrations
                     b.ToTable("StockAdjustments");
                 });
 
+            modelBuilder.Entity("CityMarketPOS.Models.StockTaking", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CompletedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ConductedByUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ConductedByUserName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Remarks")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StockTakingNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("TakingDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("StockTakings");
+                });
+
+            modelBuilder.Entity("CityMarketPOS.Models.StockTakingDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ActualQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ExpectedQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("GRNDetailId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<int>("StockTakingId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Variance")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GRNDetailId");
+
+                    b.HasIndex("StockTakingId");
+
+                    b.ToTable("StockTakingDetails");
+                });
+
             modelBuilder.Entity("CityMarketPOS.Models.Supplier", b =>
                 {
                     b.Property<int>("Id")
@@ -990,6 +1069,25 @@ namespace CityMarketPOS.Migrations
                     b.Navigation("GRNDetail");
                 });
 
+            modelBuilder.Entity("CityMarketPOS.Models.StockTakingDetail", b =>
+                {
+                    b.HasOne("CityMarketPOS.Models.GRNDetail", "GRNDetail")
+                        .WithMany()
+                        .HasForeignKey("GRNDetailId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CityMarketPOS.Models.StockTaking", "StockTaking")
+                        .WithMany("Details")
+                        .HasForeignKey("StockTakingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("GRNDetail");
+
+                    b.Navigation("StockTaking");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -1069,6 +1167,11 @@ namespace CityMarketPOS.Migrations
                 });
 
             modelBuilder.Entity("CityMarketPOS.Models.Sale", b =>
+                {
+                    b.Navigation("Details");
+                });
+
+            modelBuilder.Entity("CityMarketPOS.Models.StockTaking", b =>
                 {
                     b.Navigation("Details");
                 });

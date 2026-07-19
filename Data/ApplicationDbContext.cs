@@ -18,8 +18,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<GRNDetail> GRNDetails { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
     public DbSet<StockAdjustment> StockAdjustments { get; set; }
-    public DbSet<StockTaking> StockTakings { get; set; }
-    public DbSet<StockTakingDetail> StockTakingDetails { get; set; }
     public DbSet<Counter> Counters { get; set; }
     public DbSet<POSSession> POSSessions { get; set; }
     public DbSet<Sale> Sales { get; set; }
@@ -93,5 +91,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .WithMany()
             .HasForeignKey(d => d.GRNDetailId)
             .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<Supplier>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<Product>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<UOM>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<Category>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<Counter>().HasQueryFilter(e => !e.IsDeleted);
     }
 }

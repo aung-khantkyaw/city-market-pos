@@ -72,14 +72,14 @@ namespace CityMarketPOS.Controllers
             var uom = await _uomRepo.GetByIdAsync(id);
             if (uom != null)
             {
-                var uomName = uom.Name;
-                _uomRepo.Delete(uom);
+                uom.IsDeleted = true;
+                _uomRepo.Update(uom);
                 await _uomRepo.SaveChangesAsync();
 
                 var user = await _userManager.GetUserAsync(User);
-                await _auditLogRepo.LogAsync("UOM", id.ToString(), "Delete", user?.Id ?? "System", user?.UserName ?? "System", $"Deleted UOM: {uomName}");
+                await _auditLogRepo.LogAsync("UOM", id.ToString(), "Soft Delete", user?.Id ?? "System", user?.UserName ?? "System", $"Soft deleted UOM: {uom.Name}");
 
-                TempData["Success"] = "UOM deleted successfully!";
+                TempData["Success"] = "UOM removed successfully!";
             }
             return RedirectToAction(nameof(Index));
         }

@@ -34,10 +34,21 @@ namespace CityMarketPOS.Controllers
 
         public IActionResult Create()
         {
-            ViewBag.GRNDetails = new SelectList(_context.GRNDetails
+            var grnDetails = _context.GRNDetails
                 .Include(g => g.Product)
+                .Include(g => g.GRN)
+                .ThenInclude(g => g.PurchaseOrder)
+                .ThenInclude(po => po.Supplier)
                 .Where(g => g.CurrentStockQuantity > 0)
-                .OrderBy(g => g.Product.Name), "Id", "Product.Name");
+                .OrderBy(g => g.Product.Name)
+                .Select(g => new
+                {
+                    Id = g.Id,
+                    DisplayText = $"{g.Product.Name} - {g.GRN.PurchaseOrder.Supplier.Name ?? "N/A"} (Stock: {g.CurrentStockQuantity})"
+                })
+                .ToList();
+
+            ViewBag.GRNDetails = new SelectList(grnDetails, "Id", "DisplayText");
             
             ViewBag.AdjustmentTypes = new SelectList(new[]
             {
@@ -56,6 +67,17 @@ namespace CityMarketPOS.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(StockAdjustment adjustment)
         {
+            // 1. Set your backend-generated properties
+            adjustment.AdjustedByUserId = _userManager.GetUserId(User);
+            adjustment.AdjustedByUserName = _userManager.GetUserName(User);
+            adjustment.AdjustmentDate = DateTime.Now;
+
+            // 2. Clear the validation errors for navigation properties and fields we set manually
+            ModelState.Remove(nameof(adjustment.GRNDetail));
+            ModelState.Remove(nameof(adjustment.AdjustedByUserId));
+            ModelState.Remove(nameof(adjustment.AdjustedByUserName));
+
+            // 3. Now check if the rest of the user-submitted form is valid
             if (ModelState.IsValid)
             {
                 var grnDetail = await _context.GRNDetails
@@ -67,10 +89,6 @@ namespace CityMarketPOS.Controllers
                     ModelState.AddModelError("", "Stock item not found");
                     return View(adjustment);
                 }
-
-                adjustment.AdjustedByUserId = _userManager.GetUserId(User);
-                adjustment.AdjustedByUserName = _userManager.GetUserName(User);
-                adjustment.AdjustmentDate = DateTime.Now;
 
                 // Update stock quantity based on adjustment type
                 if (adjustment.AdjustmentType == "In" || adjustment.AdjustmentType == "Correction")
@@ -97,20 +115,32 @@ namespace CityMarketPOS.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewBag.GRNDetails = new SelectList(_context.GRNDetails
+            // If we reach here, something else failed validation. Repopulate dropdowns.
+            var grnDetails = _context.GRNDetails
                 .Include(g => g.Product)
+                .Include(g => g.GRN)
+                .ThenInclude(g => g.PurchaseOrder)
+                .ThenInclude(po => po.Supplier)
                 .Where(g => g.CurrentStockQuantity > 0)
-                .OrderBy(g => g.Product.Name), "Id", "Product.Name");
-            
+                .OrderBy(g => g.Product.Name)
+                .Select(g => new
+                {
+                    Id = g.Id,
+                    DisplayText = $"{g.Product.Name} - {g.GRN.PurchaseOrder.Supplier.Name ?? "N/A"} (Stock: {g.CurrentStockQuantity})"
+                })
+                .ToList();
+
+            ViewBag.GRNDetails = new SelectList(grnDetails, "Id", "DisplayText");
+
             ViewBag.AdjustmentTypes = new SelectList(new[]
             {
-                new { Value = "In", Text = "Stock In" },
-                new { Value = "Out", Text = "Stock Out" },
-                new { Value = "Damage", Text = "Damage" },
-                new { Value = "Loss", Text = "Loss" },
-                new { Value = "Theft", Text = "Theft" },
-                new { Value = "Correction", Text = "Correction" }
-            }, "Value", "Text");
+        new { Value = "In", Text = "Stock In" },
+        new { Value = "Out", Text = "Stock Out" },
+        new { Value = "Damage", Text = "Damage" },
+        new { Value = "Loss", Text = "Loss" },
+        new { Value = "Theft", Text = "Theft" },
+        new { Value = "Correction", Text = "Correction" }
+    }, "Value", "Text");
 
             return View(adjustment);
         }

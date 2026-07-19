@@ -81,13 +81,13 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label>Purchase Price</label>
-                            <p class="form-control-static">@Model.PurchasePrice:F2</p>
+                            <p class="form-control-static">@Model.PurchasePrice</p>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
                             <label>Selling Price</label>
-                            <p class="form-control-static">@Model.SellingPrice:F2</p>
+                            <p class="form-control-static">@Model.SellingPrice</p>
                         </div>
                     </div>
                 </div>
@@ -107,9 +107,9 @@
                 <button onclick="showWriteOffModal(@Model.Id, '@Model.Product?.Name', @Model.CurrentStockQuantity)" class="btn btn-danger">
                     <i class="fas fa-trash"></i> Write Off
                 </button>
-                <button onclick="showDiscountModal(@Model.Id, '@Model.Product?.Name', @Model.SellingPrice)" class="btn btn-warning">
-                    <i class="fas fa-percent"></i> Apply Discount
-                </button>
+                <a asp-action="Reorder" asp-route-id="@Model.Id" class="btn btn-success">
+                    <i class="fas fa-shopping-cart"></i> Reorder
+                </a>
             </div>
         </div>
     </div>
@@ -147,42 +147,6 @@
     </div>
 </div>
 
-<!-- Discount Modal -->
-<div class="modal fade" id="discountModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Apply Discount</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form asp-action="Discount" method="post">
-                    <input type="hidden" id="discountId" name="id" />
-                    <div class="form-group">
-                        <label>Product</label>
-                        <input type="text" id="discountProduct" class="form-control" readonly />
-                    </div>
-                    <div class="form-group">
-                        <label>Current Price</label>
-                        <input type="text" id="discountCurrentPrice" class="form-control" readonly />
-                    </div>
-                    <div class="form-group">
-                        <label>Discount Percentage (%)</label>
-                        <input type="number" name="discountPercentage" class="form-control" min="1" max="100" required />
-                    </div>
-                    <div class="form-group">
-                        <label>Reason</label>
-                        <input type="text" name="reason" class="form-control" required placeholder="e.g., Expiring soon, Clearance" />
-                    </div>
-                    <button type="submit" class="btn btn-warning">Apply Discount</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
 @section Scripts {
     <script>
         function showWriteOffModal(id, productName, quantity) {
@@ -190,13 +154,6 @@
             document.getElementById('writeOffProduct').value = productName;
             document.getElementById('writeOffQuantity').value = quantity;
             $('#writeOffModal').modal('show');
-        }
-
-        function showDiscountModal(id, productName, currentPrice) {
-            document.getElementById('discountId').value = id;
-            document.getElementById('discountProduct').value = productName;
-            document.getElementById('discountCurrentPrice').value = currentPrice.toFixed(2);
-            $('#discountModal').modal('show');
         }
     </script>
 }

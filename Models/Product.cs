@@ -24,7 +24,7 @@ namespace CityMarketPOS.Models
         public int MinStockLevel { get; set; } = 5; 
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
-
+        public bool IsDeleted { get; set; } = false;
         public virtual ICollection<Supplier> Suppliers { get; set; } = new List<Supplier>();
     }
 }

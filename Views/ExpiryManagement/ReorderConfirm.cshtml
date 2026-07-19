@@ -1,0 +1,265 @@
+@model CityMarketPOS.Models.GRNDetail
+
+@{
+    ViewData["Title"] = "Confirm Reorder";
+    var grnDetail = ViewBag.GRNDetail as CityMarketPOS.Models.GRNDetail;
+    var suppliers = ViewBag.Suppliers as List<CityMarketPOS.Models.Supplier>;
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Confirm Reorder</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Home">Home</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Expiry Management</a></li>
+                    <li class="breadcrumb-item active">Confirm Reorder</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card card-outline card-info">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-info-circle mr-1"></i> Expired Item Details</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Product</label>
+                            <input type="text" class="form-control" value="@grnDetail?.Product?.Name" readonly />
+                        </div>
+                        <div class="form-group">
+                            <label>Item Code</label>
+                            <input type="text" class="form-control" value="@grnDetail?.ItemCode" readonly />
+                        </div>
+                        <div class="form-group">
+                            <label>Expiry Date</label>
+                            <input type="text" class="form-control" value="@grnDetail?.ExpiryDate?.ToString("yyyy-MM-dd")" readonly />
+                        </div>
+                        <div class="form-group">
+                            <label>Expired Quantity</label>
+                            <input type="text" class="form-control" value="@grnDetail?.CurrentStockQuantity" readonly />
+                        </div>
+                        <div class="form-group">
+                            <label>Original Purchase Price</label>
+                            <input type="text" class="form-control" value="@grnDetail?.PurchasePrice" readonly />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="card card-outline card-success">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-shopping-cart mr-1"></i> Purchase Order Details</h3>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="ConfirmReorder" method="post" id="poForm">
+                            <input type="hidden" name="grnDetailId" value="@grnDetail?.Id" />
+                            
+                            <div class="row">
+                                <div class="col-md-6 form-group mb-3">
+                                    <label class="form-label fw-bold">PO Number</label>
+                                    <input name="poNumber" class="form-control bg-light fw-bold text-primary" value="@ViewBag.PONumber" readonly />
+                                </div>
+
+                                <div class="col-md-6 form-group mb-3">
+                                    <label class="form-label fw-bold">Select Supplier <span class="text-danger">*</span></label>
+                                    <select name="supplierId" class="form-control" id="mainSupplierDropdown" required>
+                                        <option value="">-- Choose Supplier --</option>
+                                        @if (suppliers != null)
+                                        {
+                                            foreach (var supplier in suppliers)
+                                            {
+                                                <option value="@supplier.Id" selected="@(supplier.Id == ViewBag.SelectedSupplierId)">@supplier.Name</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+
+                            <hr />
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="fw-bold m-0">Order Items</h6>
+                                <button type="button" class="btn btn-sm btn-info" id="btnAddRow" disabled>
+                                    <i class="fas fa-plus"></i> Add Product
+                                </button>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-sm">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th width="20%">Category <span class="text-danger">*</span></th>
+                                            <th width="25%">Product <span class="text-danger">*</span></th>
+                                            <th width="15%">Unit Price <span class="text-danger">*</span></th>
+                                            <th width="15%">Quantity <span class="text-danger">*</span></th>
+                                            <th width="20%">Total</th>
+                                            <th width="5%" class="text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="itemsBody">
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th colspan="4" class="text-right align-middle">Grand Total:</th>
+                                            <th class="text-right align-middle"><span id="grandTotal" class="font-weight-bold text-success">0.00</span></th>
+                                            <th></th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+
+                            <div class="form-group mb-0 mt-3">
+                                <button type="submit" class="btn btn-success btn-lg btn-block">
+                                    <i class="fas fa-check mr-1"></i> Create Purchase Order
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            var currentSupplierCategories = [];
+            var initialProductId = @grnDetail?.ProductId;
+            var initialQuantity = @ViewBag.Quantity;
+            var initialUnitPrice = @ViewBag.UnitPrice;
+
+            $('#mainSupplierDropdown').change(function () {
+                var supplierId = $(this).val();
+                $('#itemsBody').empty();
+                calculateGrandTotal();
+
+                if (!supplierId) {
+                    $('#btnAddRow').attr('disabled', true);
+                    return;
+                }
+
+                $.getJSON('/PurchaseOrder/GetCategoriesBySupplier', { supplierId: supplierId }, function (data) {
+                    currentSupplierCategories = data;
+
+                    if (data.length > 0) {
+                        $('#btnAddRow').attr('disabled', false);
+                        addRow();
+                    } else {
+                        $('#btnAddRow').attr('disabled', true);
+                        alert("This supplier has no registered categories/products.");
+                    }
+                });
+            });
+
+            // Initialize with selected supplier
+            if ($('#mainSupplierDropdown').val()) {
+                $('#mainSupplierDropdown').trigger('change');
+            }
+
+            $('#btnAddRow').click(function () {
+                addRow();
+            });
+
+            $(document).on('click', '.btn-remove-row', function () {
+                if ($('#itemsBody tr').length > 1) {
+                    $(this).closest('tr').remove();
+                    reindexRows();
+                    calculateGrandTotal();
+                } else {
+                    alert("At least one product is required.");
+                }
+            });
+
+            $(document).on('change', '.category-select', function() {
+                var supplierId = $('#mainSupplierDropdown').val();
+                var categoryId = $(this).val();
+                var row = $(this).closest('tr');
+                var productSelect = row.find('.product-select');
+
+                productSelect.empty().append('<option value="">-- Select Product --</option>');
+
+                if(categoryId && supplierId) {
+                    $.getJSON('/PurchaseOrder/GetProductsBySupplierAndCategory', { supplierId: supplierId, categoryId: categoryId }, function (data) {
+                        $.each(data, function (index, item) {
+                            productSelect.append(`<option value="${item.value}">${item.text}</option>`);
+                        });
+                    });
+                }
+            });
+
+            $(document).on('input', '.qty-input, .price-input', function () {
+                var row = $(this).closest('tr');
+                var qty = parseFloat(row.find('.qty-input').val()) || 0;
+                var price = parseFloat(row.find('.price-input').val()) || 0;
+                var total = qty * price;
+                row.find('.row-total').val(total.toFixed(2));
+                calculateGrandTotal();
+            });
+
+            function addRow() {
+                var catOptions = '<option value="">-- Select Category --</option>';
+                $.each(currentSupplierCategories, function (index, item) {
+                    catOptions += `<option value="${item.value}">${item.text}</option>`;
+                });
+
+                var tr = `
+                    <tr>
+                        <td>
+                            <select class="form-control category-select" required>
+                                ${catOptions}
+                            </select>
+                        </td>
+                        <td>
+                            <select class="form-control product-select" required>
+                                <option value="">-- Select Product --</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="number" class="form-control price-input text-right" value="0" min="0" step="0.01" required />
+                        </td>
+                        <td>
+                            <input type="number" class="form-control qty-input text-right" value="1" min="1" required />
+                        </td>
+                        <td>
+                            <input type="text" class="form-control row-total text-right font-weight-bold" value="0.00" readonly />
+                        </td>
+                        <td class="text-center align-middle">
+                            <button type="button" class="btn btn-sm btn-danger btn-remove-row">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                $('#itemsBody').append(tr);
+                reindexRows();
+            }
+
+            function reindexRows() {
+                $('#itemsBody tr').each(function (index, element) {
+                    $(element).find('.product-select').attr('name', `Items[${index}].ProductId`);
+                    $(element).find('.price-input').attr('name', `Items[${index}].UnitPrice`);
+                    $(element).find('.qty-input').attr('name', `Items[${index}].Quantity`);
+                });
+            }
+
+            function calculateGrandTotal() {
+                var grandTotal = 0;
+                $('.row-total').each(function () {
+                    grandTotal += parseFloat($(this).val()) || 0;
+                });
+                $('#grandTotal').text(grandTotal.toFixed(2));
+            }
+        });
+    </script>
+}
