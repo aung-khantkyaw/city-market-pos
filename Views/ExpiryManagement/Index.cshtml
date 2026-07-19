@@ -91,7 +91,7 @@
                             foreach (var item in Model)
                             {
                                 var daysUntilExpiry = (item.ExpiryDate - DateTime.Now).Value.Days;
-                                var isExpired = daysUntilExpiry < 0;
+                                var isExpired = daysUntilExpiry <= 0;
                                 
                                 <tr class="@(isExpired ? "table-danger" : daysUntilExpiry <= 7 ? "table-warning" : "")">
                                     <td>@item.Product?.Name</td>
@@ -108,9 +108,12 @@
                                         <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <button onclick="showWriteOffModal(@item.Id, '@item.Product?.Name', @item.CurrentStockQuantity)" class="btn btn-sm btn-danger">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
+                                        @if (isExpired)
+                                        {
+                                            <button onclick="showWriteOffModal(@item.Id, '@item.Product?.Name', @item.CurrentStockQuantity)" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        }
                                         <a asp-action="Reorder" asp-route-id="@item.Id" class="btn btn-sm btn-success">
                                             <i class="fas fa-shopping-cart"></i>
                                         </a>

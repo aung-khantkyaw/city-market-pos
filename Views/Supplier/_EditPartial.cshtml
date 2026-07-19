@@ -22,6 +22,7 @@
                 <label asp-for="ContactPerson">Contact Person</label>
                 <input asp-for="ContactPerson" class="form-control" />
             </div>
+
             <div class="col-md-6 form-group">
                 <label>Phone Numbers</label>
                 <div id="phoneContainer">
@@ -31,7 +32,9 @@
                         if (phones.Length == 0)
                         {
                             <div class="input-group mb-2 phone-input-group">
-                                <input type="text" name="phoneNumbers" class="form-control" placeholder="Phone 1" />
+                                <input type="text" name="phoneNumbers" class="form-control"
+                                       pattern="^(09|\+?959)\d{7,9}$"
+                                       title="တရားဝင် မြန်မာဖုန်းနံပါတ် (09xxxxxxxxx သို့မဟုတ် +959xxxxxxxxx)" />
                                 <div class="input-group-append">
                                     <button type="button" class="btn btn-success add-phone"><i class="fas fa-plus"></i></button>
                                 </div>
@@ -42,7 +45,9 @@
                             for (int i = 0; i < phones.Length; i++)
                             {
                                 <div class="input-group mb-2 phone-input-group">
-                                    <input type="text" name="phoneNumbers" class="form-control" value="@phones[i].Trim()" />
+                                    <input type="text" name="phoneNumbers" class="form-control" value="@phones[i].Trim()"
+                                           pattern="^(09|\+?959)\d{7,9}$"
+                                           title="တရားဝင် မြန်မာဖုန်းနံပါတ် (09xxxxxxxxx သို့မဟုတ် +959xxxxxxxxx)" />
                                     <div class="input-group-append">
                                         @if (i == 0)
                                         {
@@ -102,9 +107,7 @@
                                     bool isChecked = selectedIds.Contains(prod.Id);
                                     <div class="custom-control custom-checkbox edit-product-item mb-2" data-category="@prod.CategoryId">
                                         <input type="checkbox" class="custom-control-input" name="selectedProductIds" value="@prod.Id" id="edit_prod_@prod.Id" @(isChecked ? "checked" : "")>
-                                        <label class="custom-control-label" for="edit_prod_@prod.Id" style="cursor: pointer;">
-                                            @prod.Name
-                                        </label>
+                                        <label class="custom-control-label" for="edit_prod_@prod.Id" style="cursor: pointer;">@prod.Name</label>
                                     </div>
                                 }
                             }
@@ -121,8 +124,8 @@
 </form>
 
 <script>
-    $(document).ready(function () {
-        $('#editCategoryFilter').on('change', function () {
+    $(document).ready(function() {
+        $('#editCategoryFilter').on('change', function() {
             var selectedCat = $(this).val();
 
             if (selectedCat === 'all') {
@@ -134,19 +137,21 @@
         });
     });
 
-        $(document).off('click', '.add-phone').on('click', '.add-phone', function () {
-            var newField = `
+    $(document).off('click', '.add-phone').on('click', '.add-phone', function() {
+        var newField = `
                 <div class="input-group mb-2 phone-input-group">
-                    <input type="text" name="phoneNumbers" class="form-control" placeholder="Additional Phone" />
+                    <input type="text" name="phoneNumbers" class="form-control"
+                           pattern="^(09|\\+?959)\\d{7,9}$"
+                           title="တရားဝင် မြန်မာဖုန်းနံပါတ် (09xxxxxxxxx သို့မဟုတ် +959xxxxxxxxx)" />
                     <div class="input-group-append">
                         <button type="button" class="btn btn-danger remove-phone"><i class="fas fa-minus"></i></button>
                     </div>
                 </div>
             `;
-            $('#phoneContainer').append(newField);
-        });
+        $('#phoneContainer').append(newField);
+    });
 
-        $(document).off('click', '.remove-phone').on('click', '.remove-phone', function () {
-            $(this).closest('.phone-input-group').remove();
-        });
+    $(document).off('click', '.remove-phone').on('click', '.remove-phone', function() {
+        $(this).closest('.phone-input-group').remove();
+    });
 </script>
