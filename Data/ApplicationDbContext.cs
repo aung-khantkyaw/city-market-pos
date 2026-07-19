@@ -17,7 +17,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<GRN> GRNs { get; set; }
     public DbSet<GRNDetail> GRNDetails { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
-    public DbSet<StockAdjustment> StockAdjustments { get; set; }
     public DbSet<Counter> Counters { get; set; }
     public DbSet<POSSession> POSSessions { get; set; }
     public DbSet<Sale> Sales { get; set; }

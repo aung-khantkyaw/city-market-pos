@@ -110,21 +110,6 @@ namespace CityMarketPOS.Controllers
             return View();
         }
 
-        public async Task<IActionResult> StockMovement()
-        {
-            // Get recent stock adjustments
-            var recentAdjustments = await _context.StockAdjustments
-                .Include(s => s.GRNDetail)
-                    .ThenInclude(g => g.Product)
-                .OrderByDescending(s => s.AdjustmentDate)
-                .Take(50)
-                .ToListAsync();
-
-            ViewBag.RecentAdjustments = recentAdjustments;
-
-            return View();
-        }
-
         public async Task<IActionResult> SessionReport(int sessionId)
         {
             var session = await _context.POSSessions
