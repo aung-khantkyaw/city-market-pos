@@ -27,9 +27,25 @@ namespace CityMarketPOS.Controllers
             _auditLogRepo = auditLogRepo;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string poNumber, DateTime? receivedDate)
         {
-            return View(await _grnRepo.GetAllAsync());
+            var query = _context.GRNs
+                .Include(g => g.PurchaseOrder)
+                .Include(g => g.GRNDetails)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(poNumber))
+            {
+                query = query.Where(g => g.PurchaseOrder != null && g.PurchaseOrder.PONumber.Contains(poNumber));
+            }
+
+            if (receivedDate.HasValue)
+            {
+                query = query.Where(g => g.ReceivedDate.Date == receivedDate.Value.Date);
+            }
+
+            var grns = await query.ToListAsync();
+            return View(grns);
         }
 
         public async Task<IActionResult> Details(int id)

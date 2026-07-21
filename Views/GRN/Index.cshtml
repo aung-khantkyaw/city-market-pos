@@ -19,6 +19,37 @@
 <section class="content">
     <div class="container-fluid">
         <div class="card card-outline card-primary shadow-sm">
+            <div class="card-body">
+                <form asp-action="Index" method="get" class="mb-3">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label for="poNumber">PO Number</label>
+                                <input type="text" id="poNumber" name="poNumber" class="form-control form-control-sm" placeholder="Enter PO Number" />
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label for="receivedDate">Received Date</label>
+                                <input type="date" id="receivedDate" name="receivedDate" class="form-control form-control-sm" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>&nbsp;</label>
+                                <div>
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-filter"></i> Filter
+                                    </button>
+                                    <a asp-action="Index" class="btn btn-secondary btn-sm">
+                                        <i class="fas fa-times"></i> Clear
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
             <div class="card-body p-0 table-responsive">
                 <table class="table table-hover table-striped align-middle">
                     <thead class="bg-light">
@@ -53,3 +84,19 @@
         </div>
     </div>
 </section>
+
+@section Scripts {
+    <script>
+        $(function () {
+            // Preserve selected values after postback
+            @if (Context.Request.Query["poNumber"].Count > 0)
+            {
+                <text>$('#poNumber').val('@Context.Request.Query["poNumber"]');</text>
+            }
+            @if (Context.Request.Query["receivedDate"].Count > 0)
+            {
+                <text>$('#receivedDate').val('@Context.Request.Query["receivedDate"]');</text>
+            }
+        });
+    </script>
+}

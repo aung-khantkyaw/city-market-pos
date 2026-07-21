@@ -22,6 +22,83 @@
                     <i class="fas fa-plus mr-1"></i> Create New PO
                 </button>
             </div>
+            <div class="card-body">
+                <form asp-action="Index" method="get" class="mb-3">
+                    <div class="row">
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label for="supplierId">Supplier</label>
+                                <select id="supplierId" name="supplierId" class="form-control form-control-sm">
+                                    <option value="">All Suppliers</option>
+                                    @if (ViewBag.SupplierList != null)
+                                    {
+                                        @foreach (var item in ViewBag.SupplierList as SelectList)
+                                        {
+                                            <option value="@item.Value">@item.Text</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label for="orderDate">Order Date</label>
+                                <input type="date" id="orderDate" name="orderDate" class="form-control form-control-sm" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label for="status">Status</label>
+                                <select id="status" name="status" class="form-control form-control-sm">
+                                    @if (ViewBag.StatusList != null)
+                                    {
+                                        @foreach (var item in ViewBag.StatusList as List<SelectListItem>)
+                                        {
+                                            <option value="@item.Value">@item.Text</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label for="categoryId">Category</label>
+                                <select id="categoryId" name="categoryId" class="form-control form-control-sm">
+                                    <option value="">All Categories</option>
+                                    @if (ViewBag.CategoryList != null)
+                                    {
+                                        @foreach (var item in ViewBag.CategoryList as SelectList)
+                                        {
+                                            <option value="@item.Value">@item.Text</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label for="productId">Product</label>
+                                <select id="productId" name="productId" class="form-control form-control-sm">
+                                    <option value="">All Products</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>&nbsp;</label>
+                                <div>
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-filter"></i> Filter
+                                    </button>
+                                    <a asp-action="Index" class="btn btn-secondary btn-sm">
+                                        <i class="fas fa-times"></i> Clear
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
             <div class="card-body table-responsive p-0">
                 <table class="table table-hover text-nowrap table-valign-middle">
                     <thead class="bg-light">
@@ -117,6 +194,75 @@
         "info": true,
         "autoWidth": false
         });
+
+        // Function to load products
+        function loadProducts(categoryId) {
+            var productIdSelect = $('#productId');
+            
+            if (!categoryId || categoryId === '') {
+                // Load all products when no category selected
+                console.log('Loading all products...');
+                $.get('@Url.Action("GetAllProducts", "PurchaseOrder")', function (data) {
+                    console.log('Products loaded:', data);
+                    productIdSelect.empty();
+                    productIdSelect.append('<option value="">All Products</option>');
+                    $.each(data, function (i, item) {
+                        productIdSelect.append('<option value="' + item.value + '">' + item.text + '</option>');
+                    });
+                }).fail(function(xhr, status, error) {
+                    console.error('Error loading products:', error);
+                });
+            } else {
+                // Load products for specific category
+                console.log('Loading products for category:', categoryId);
+                $.get('@Url.Action("GetProductsByCategory", "PurchaseOrder")', { categoryId: categoryId }, function (data) {
+                    console.log('Products loaded:', data);
+                    productIdSelect.empty();
+                    productIdSelect.append('<option value="">All Products</option>');
+                    $.each(data, function (i, item) {
+                        productIdSelect.append('<option value="' + item.value + '">' + item.text + '</option>');
+                    });
+                }).fail(function(xhr, status, error) {
+                    console.error('Error loading products:', error);
+                });
+            }
+        }
+
+        // Load all products on page load
+        loadProducts('');
+
+        // Load products when category changes
+        $('#categoryId').change(function () {
+            var categoryId = $(this).val();
+            loadProducts(categoryId);
+        });
+
+        // Preserve selected values after postback
+        @if (Context.Request.Query["supplierId"].Count > 0)
+        {
+            <text>$('#supplierId').val('@Context.Request.Query["supplierId"]');</text>
+        }
+        @if (Context.Request.Query["orderDate"].Count > 0)
+        {
+            <text>$('#orderDate').val('@Context.Request.Query["orderDate"]');</text>
+        }
+        @if (Context.Request.Query["status"].Count > 0)
+        {
+            <text>$('#status').val('@Context.Request.Query["status"]');</text>
+        }
+        @if (Context.Request.Query["categoryId"].Count > 0)
+        {
+            <text>
+                $('#categoryId').val('@Context.Request.Query["categoryId"]');
+                // Trigger change to load products
+                $('#categoryId').change();
+                // Then select the product
+                @if (Context.Request.Query["productId"].Count > 0)
+                {
+                    <text>setTimeout(function() { $('#productId').val('@Context.Request.Query["productId"]'); }, 100);</text>
+                }
+            </text>
+        }
         });
 
         @if (TempData["Success"] != null)

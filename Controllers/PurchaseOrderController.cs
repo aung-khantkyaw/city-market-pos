@@ -29,9 +29,53 @@ namespace CityMarketPOS.Controllers
             _userManager = userManager;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? supplierId, DateTime? orderDate, string status, int? productId, int? categoryId)
         {
-            var pos = await _poRepo.GetAllPOAsync();
+            var query = _context.PurchaseOrders
+                .Include(po => po.Supplier)
+                .Include(po => po.OrderDetails)
+                .ThenInclude(od => od.Product)
+                .ThenInclude(p => p.Category)
+                .AsQueryable();
+
+            if (supplierId.HasValue)
+            {
+                query = query.Where(po => po.SupplierId == supplierId.Value);
+            }
+
+            if (orderDate.HasValue)
+            {
+                query = query.Where(po => po.OrderDate.Date == orderDate.Value.Date);
+            }
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(po => po.Status == status);
+            }
+
+            if (productId.HasValue)
+            {
+                query = query.Where(po => po.OrderDetails.Any(od => od.ProductId == productId.Value));
+            }
+
+            if (categoryId.HasValue)
+            {
+                query = query.Where(po => po.OrderDetails.Any(od => od.Product.CategoryId == categoryId.Value));
+            }
+
+            var pos = await query.ToListAsync();
+
+            ViewBag.SupplierList = new SelectList(_context.Suppliers.Where(s => !s.IsDeleted), "Id", "Name");
+            ViewBag.CategoryList = new SelectList(_context.Categories.Where(c => !c.IsDeleted), "Id", "Name");
+            ViewBag.StatusList = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "", Text = "All Statuses" },
+                new SelectListItem { Value = "Pending", Text = "Pending" },
+                new SelectListItem { Value = "Received", Text = "Received" },
+                new SelectListItem { Value = "Partially Received", Text = "Partially Received" },
+                new SelectListItem { Value = "Cancelled", Text = "Cancelled" }
+            };
+
             return View(pos);
         }
 
@@ -68,6 +112,28 @@ namespace CityMarketPOS.Controllers
                 .ToList();
 
             return Json(uniqueProducts);
+        }
+
+        [HttpGet]
+        public IActionResult GetAllProducts()
+        {
+            var products = _context.Products
+                .Where(p => !p.IsDeleted)
+                .Select(p => new { value = p.Id, text = p.Name })
+                .ToList();
+
+            return Json(products);
+        }
+
+        [HttpGet]
+        public IActionResult GetProductsByCategory(int categoryId)
+        {
+            var products = _context.Products
+                .Where(p => p.CategoryId == categoryId && !p.IsDeleted)
+                .Select(p => new { value = p.Id, text = p.Name })
+                .ToList();
+
+            return Json(products);
         }
 
         public IActionResult Create()

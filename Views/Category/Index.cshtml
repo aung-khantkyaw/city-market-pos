@@ -24,7 +24,6 @@
                 <table class="table table-hover table-striped">
                     <thead>
                         <tr>
-                            <th>ID</th>
                             <th>Name</th>
                             <th>Short Name</th>
                             <th>Description</th>
@@ -35,7 +34,6 @@
                         @foreach (var item in Model)
                         {
                             <tr>
-                                <td>@item.Id</td>
                                 <td>@item.Name</td>
                                 <td><span class="badge badge-secondary">@item.ShortName</span></td>
                                 <td>@item.Description</td>
