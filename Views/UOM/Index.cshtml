@@ -174,21 +174,20 @@
         $(document).ready(function () {
             $('#uomTable').DataTable({
                 "paging": true,
-                "lengthChange": false,
+                "lengthChange": true,
                 "searching": true,
                 "ordering": true,
-                "info": false,
+                "info": true,
                 "autoWidth": false,
                 "responsive": true,
                 "pageLength": 10,
+                "lengthMenu": [5, 10, 25, 50, 100],
                 "language": {
                     "paginate": {
                         "previous": "<i class='fas fa-chevron-left'></i>",
                         "next": "<i class='fas fa-chevron-right'></i>"
                     }
-                },
-                "dom": "<'row'<'col-sm-12'tr>>" +
-                      "<'row'<'col-sm-12 text-center'p>>"
+                }
             });
 
             // --- Create Logic ---
