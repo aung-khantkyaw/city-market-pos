@@ -2,11 +2,13 @@
     ViewData["Title"] = "Sales Reports";
 }
 
-<div class="content-header">
+<section class="content-header">
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1>Sales Reports</h1>
+                <h1 class="display-6 h3">
+                    <i class="fas fa-chart-line text-primary mr-2"></i> Sales Reports
+                </h1>
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
@@ -16,66 +18,84 @@
             </div>
         </div>
     </div>
-</div>
+</section>
 
-<div class="content">
+<section class="content">
     <div class="container-fluid">
         <!-- Filter Form -->
-        <div class="card card-outline card-primary mb-3">
-            <div class="card-header">
-                <h3 class="card-title"><i class="fas fa-filter"></i> Filter Sales</h3>
+        <div class="card card-outline card-primary mb-3 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-filter mr-2"></i> Filter Sales
+                </h3>
             </div>
-            <div class="card-body">
-                <form asp-action="Index" method="get" class="row">
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label>Start Date</label>
-                            <input type="date" name="startDate" class="form-control" value="@ViewBag.StartDate?.ToString("yyyy-MM-dd")" />
+            <div class="card-body p-3">
+                <form asp-action="Index" method="get">
+                    <div class="card bg-light">
+                        <div class="card-body py-3">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-group mb-0">
+                                        <label class="small font-weight-bold">
+                                            <i class="fas fa-calendar-alt mr-1"></i> Start Date
+                                        </label>
+                                        <input type="date" name="startDate" class="form-control form-control-sm" value="@ViewBag.StartDate?.ToString("yyyy-MM-dd")" />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group mb-0">
+                                        <label class="small font-weight-bold">
+                                            <i class="fas fa-calendar-alt mr-1"></i> End Date
+                                        </label>
+                                        <input type="date" name="endDate" class="form-control form-control-sm" value="@ViewBag.EndDate?.ToString("yyyy-MM-dd")" />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group mb-0">
+                                        <label class="small font-weight-bold">
+                                            <i class="fas fa-user mr-1"></i> Cashier
+                                        </label>
+                                        <select name="cashierId" class="form-control form-control-sm">
+                                            <option value="">All Cashiers</option>
+                                            @if (ViewBag.Cashiers != null)
+                                            {
+                                                foreach (var cashier in ViewBag.Cashiers)
+                                                {
+                                                    <option value="@cashier.CashierId" selected="@(ViewBag.CashierId == cashier.CashierId)">@cashier.CashierName</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group mb-0">
+                                        <label class="small font-weight-bold">
+                                            <i class="fas fa-store mr-1"></i> Counter
+                                        </label>
+                                        <select name="counterId" class="form-control form-control-sm">
+                                            <option value="">All Counters</option>
+                                            @if (ViewBag.Counters != null)
+                                            {
+                                                foreach (var counter in ViewBag.Counters)
+                                                {
+                                                    <option value="@counter.Id" selected="@(ViewBag.CounterId == counter.Id)">@counter.Name</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-12">
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-search mr-1"></i> Apply Filters
+                                    </button>
+                                    <a asp-action="Index" class="btn btn-secondary btn-sm">
+                                        <i class="fas fa-times mr-1"></i> Clear Filters
+                                    </a>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label>End Date</label>
-                            <input type="date" name="endDate" class="form-control" value="@ViewBag.EndDate?.ToString("yyyy-MM-dd")" />
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label>Cashier</label>
-                            <select name="cashierId" class="form-control">
-                                <option value="">All Cashiers</option>
-                                @if (ViewBag.Cashiers != null)
-                                {
-                                    foreach (var cashier in ViewBag.Cashiers)
-                                    {
-                                        <option value="@cashier.CashierId" selected="@(ViewBag.CashierId == cashier.CashierId)">@cashier.CashierName</option>
-                                    }
-                                }
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label>Counter</label>
-                            <select name="counterId" class="form-control">
-                                <option value="">All Counters</option>
-                                @if (ViewBag.Counters != null)
-                                {
-                                    foreach (var counter in ViewBag.Counters)
-                                    {
-                                        <option value="@counter.Id" selected="@(ViewBag.CounterId == counter.Id)">@counter.Name</option>
-                                    }
-                                }
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-12">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-search"></i> Apply Filters
-                        </button>
-                        <a asp-action="Index" class="btn btn-secondary">
-                            <i class="fas fa-times"></i> Clear Filters
-                        </a>
                     </div>
                 </form>
             </div>
@@ -130,97 +150,146 @@
         </div>
 
         <!-- Sales Table -->
-        <div class="card card-outline card-primary">
-            <div class="card-header">
-                <h3 class="card-title"><i class="fas fa-list"></i> Sales Details</h3>
+        <div class="card card-outline card-primary shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-list mr-2"></i> Sales Details
+                </h3>
             </div>
-            <div class="card-body p-0 table-responsive">
-                @if (ViewBag.Sales != null && ((List<CityMarketPOS.Models.Sale>)ViewBag.Sales).Any())
-                {
-                    <table class="table table-striped align-middle">
-                        <thead>
-                            <tr>
-                                <th>Sale #</th>
-                                <th>Date/Time</th>
-                                <th>Cashier</th>
-                                <th>Counter</th>
-                                <th>Items</th>
-                                <th>Subtotal</th>
-                                <th>Tax</th>
-                                <th>Discount</th>
-                                <th>Total</th>
-                                <th>Payment</th>
-                                @* <th>Actions</th> *@
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var sale in ViewBag.Sales as List<CityMarketPOS.Models.Sale>)
-                            {
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    @if (ViewBag.Sales != null && ((List<CityMarketPOS.Models.Sale>)ViewBag.Sales).Any())
+                    {
+                        <table id="salesTable" class="table table-hover table-striped align-middle mb-0">
+                            <thead class="bg-light">
                                 <tr>
-                                    <td><span class="badge badge-info">@sale.SaleNumber</span></td>
-                                    <td>@sale.SaleDate.ToString("dd MMM yyyy HH:mm")</td>
-                                    <td>@sale.CashierName</td>
-                                    <td>@sale.POSSession?.Counter?.Name</td>
-                                    <td>@sale.Details.Sum(d => d.Quantity)</td>
-                                    <td>@sale.Subtotal.ToString("F2")</td>
-                                    <td>@sale.Tax.ToString("F2")</td>
-                                    <td>@sale.Discount.ToString("F2")</td>
-                                    <td><strong>@sale.GrandTotal.ToString("F2")</strong></td>
-                                    <td><span class="badge badge-success">@sale.PaymentMethod</span></td>
-                                    @* <td>
-                                        <a asp-action="SessionReport" asp-route-sessionId="@sale.POSSessionId" class="btn btn-sm btn-info">
-                                            <i class="fas fa-file-invoice"></i> Session
-                                        </a>
-                                    </td> *@
+                                    <th class="border-top-0">
+                                        <i class="fas fa-hashtag mr-1"></i> Sale #
+                                    </th>
+                                    <th class="border-top-0">
+                                        <i class="fas fa-calendar-alt mr-1"></i> Date/Time
+                                    </th>
+                                    <th class="border-top-0">
+                                        <i class="fas fa-user mr-1"></i> Cashier
+                                    </th>
+                                    <th class="border-top-0">
+                                        <i class="fas fa-store mr-1"></i> Counter
+                                    </th>
+                                    <th class="border-top-0 text-center">
+                                        <i class="fas fa-boxes mr-1"></i> Items
+                                    </th>
+                                    <th class="border-top-0">
+                                        <i class="fas fa-dollar-sign mr-1"></i> Subtotal
+                                    </th>
+                                    <th class="border-top-0">
+                                        <i class="fas fa-percentage mr-1"></i> Tax
+                                    </th>
+                                    <th class="border-top-0">
+                                        <i class="fas fa-tag mr-1"></i> Discount
+                                    </th>
+                                    <th class="border-top-0">
+                                        <i class="fas fa-dollar-sign mr-1"></i> Total
+                                    </th>
+                                    <th class="border-top-0">
+                                        <i class="fas fa-credit-card mr-1"></i> Payment
+                                    </th>
                                 </tr>
-                            }
-                        </tbody>
-                        <tfoot>
-                            <tr class="bg-light">
-                                <td colspan="6" class="text-right"><strong>Grand Total:</strong></td>
-                                <td><strong>@ViewBag.TotalTax.ToString("F2")</strong></td>
-                                <td><strong>@ViewBag.TotalDiscount.ToString("F2")</strong></td>
-                                <td colspan="3"><strong class="text-success">@ViewBag.TotalAmount.ToString("F2")</strong></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                }
-                else
-                {
-                    <div class="alert alert-info m-3">
-                        <h5><i class="icon fas fa-info-circle"></i> No Sales Found</h5>
-                        No sales found for the selected criteria.
-                    </div>
-                }
-            </div>
-        </div>
-
-        <!-- Quick Actions -->
-        @* <div class="row mt-3">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Quick Actions</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="btn-group mr-2">
-                            <a asp-action="InventoryValuation" class="btn btn-info">
-                                <i class="fas fa-calculator"></i> Inventory Valuation
-                            </a>
+                            </thead>
+                            <tbody>
+                                @foreach (var sale in ViewBag.Sales as List<CityMarketPOS.Models.Sale>)
+                                {
+                                    <tr>
+                                        <td>
+                                            <span class="badge badge-primary px-3 py-2 font-weight-bold">@sale.SaleNumber</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-light text-muted">
+                                                <i class="fas fa-calendar mr-1"></i> @sale.SaleDate.ToString("dd MMM yyyy HH:mm")
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="text-dark">@sale.CashierName</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-secondary">@sale.POSSession?.Counter?.Name</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge badge-info px-3 py-2 font-weight-bold">@sale.Details.Sum(d => d.Quantity)</span>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted">@sale.Subtotal.ToString("F2")</span>
+                                        </td>
+                                        <td>
+                                            <span class="text-danger">@sale.Tax.ToString("F2")</span>
+                                        </td>
+                                        <td>
+                                            <span class="text-warning">@sale.Discount.ToString("F2")</span>
+                                        </td>
+                                        <td>
+                                            <strong class="text-success">@sale.GrandTotal.ToString("F2")</strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-success">@sale.PaymentMethod</span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot class="bg-light">
+                                <tr>
+                                    <td colspan="6" class="text-right">
+                                        <strong>Grand Total:</strong>
+                                    </td>
+                                    <td>
+                                        <strong class="text-danger">@ViewBag.TotalTax.ToString("F2")</strong>
+                                    </td>
+                                    <td>
+                                        <strong class="text-warning">@ViewBag.TotalDiscount.ToString("F2")</strong>
+                                    </td>
+                                    <td colspan="3">
+                                        <strong class="text-success">@ViewBag.TotalAmount.ToString("F2")</strong>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No sales found for the selected criteria.</p>
                         </div>
-                        <div class="btn-group mr-2">
-                            <a asp-action="StockMovement" class="btn btn-success">
-                                <i class="fas fa-exchange-alt"></i> Stock Movement
-                            </a>
-                        </div>
-                        <div class="btn-group">
-                            <a asp-action="Index" asp-controller="AuditLog" class="btn btn-warning">
-                                <i class="fas fa-history"></i> Audit Logs
-                            </a>
-                        </div>
-                    </div>
+                    }
                 </div>
             </div>
-        </div> *@
+            <div class="card-footer bg-light">
+                <small class="text-muted">
+                    <i class="fas fa-info-circle mr-1"></i> Total: @((ViewBag.Sales as List<CityMarketPOS.Models.Sale>)?.Count() ?? 0) sales records
+                </small>
+            </div>
+        </div>
     </div>
-</div>
+</section>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#salesTable').DataTable({
+                "paging": true,
+                "lengthChange": true,
+                "searching": true,
+                "ordering": true,
+                "info": true,
+                "autoWidth": false,
+                "responsive": true,
+                "pageLength": 10,
+                "lengthMenu": [5, 10, 25, 50, 100],
+                "language": {
+                    "paginate": {
+                        "previous": "<i class='fas fa-chevron-left'></i>",
+                        "next": "<i class='fas fa-chevron-right'></i>"
+                    }
+                }
+            });
+        });
+    </script>
+}

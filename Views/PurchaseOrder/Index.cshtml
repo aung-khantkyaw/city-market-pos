@@ -7,7 +7,15 @@
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1><i class="fas fa-file-invoice text-primary"></i> Purchase Orders</h1>
+                <h1 class="display-6 h3">
+                    <i class="fas fa-file-invoice-dollar text-primary mr-2"></i> Purchase Orders
+                </h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Home</a></li>
+                    <li class="breadcrumb-item active">Purchase Orders</li>
+                </ol>
             </div>
         </div>
     </div>
@@ -16,159 +24,217 @@
 <section class="content">
     <div class="container-fluid">
         <div class="card card-outline card-primary shadow-sm">
-            <div class="card-header border-0 bg-white pt-3">
-                <h3 class="card-title font-weight-bold">PO List</h3>
-                <button type="button" class="btn btn-primary float-right" onclick="openCreateModal()">
-                    <i class="fas fa-plus mr-1"></i> Create New PO
-                </button>
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-list mr-2"></i> Purchase Order List
+                </h3>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-light btn-sm" onclick="openCreateModal()">
+                        <i class="fas fa-plus mr-1"></i> Create New PO
+                    </button>
+                </div>
             </div>
-            <div class="card-body">
+            <div class="card-body p-3">
                 <form asp-action="Index" method="get" class="mb-3">
-                    <div class="row">
-                        <div class="col-md-2">
-                            <div class="form-group">
-                                <label for="supplierId">Supplier</label>
-                                <select id="supplierId" name="supplierId" class="form-control form-control-sm">
-                                    <option value="">All Suppliers</option>
-                                    @if (ViewBag.SupplierList != null)
-                                    {
-                                        @foreach (var item in ViewBag.SupplierList as SelectList)
-                                        {
-                                            <option value="@item.Value">@item.Text</option>
-                                        }
-                                    }
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="form-group">
-                                <label for="orderDate">Order Date</label>
-                                <input type="date" id="orderDate" name="orderDate" class="form-control form-control-sm" />
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="form-group">
-                                <label for="status">Status</label>
-                                <select id="status" name="status" class="form-control form-control-sm">
-                                    @if (ViewBag.StatusList != null)
-                                    {
-                                        @foreach (var item in ViewBag.StatusList as List<SelectListItem>)
-                                        {
-                                            <option value="@item.Value">@item.Text</option>
-                                        }
-                                    }
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="form-group">
-                                <label for="categoryId">Category</label>
-                                <select id="categoryId" name="categoryId" class="form-control form-control-sm">
-                                    <option value="">All Categories</option>
-                                    @if (ViewBag.CategoryList != null)
-                                    {
-                                        @foreach (var item in ViewBag.CategoryList as SelectList)
-                                        {
-                                            <option value="@item.Value">@item.Text</option>
-                                        }
-                                    }
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="form-group">
-                                <label for="productId">Product</label>
-                                <select id="productId" name="productId" class="form-control form-control-sm">
-                                    <option value="">All Products</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="form-group">
-                                <label>&nbsp;</label>
-                                <div>
-                                    <button type="submit" class="btn btn-primary btn-sm">
-                                        <i class="fas fa-filter"></i> Filter
-                                    </button>
-                                    <a asp-action="Index" class="btn btn-secondary btn-sm">
-                                        <i class="fas fa-times"></i> Clear
-                                    </a>
+                    <div class="card bg-light">
+                        <div class="card-body py-3">
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <div class="form-group mb-0">
+                                        <label for="supplierId" class="small font-weight-bold">
+                                            <i class="fas fa-truck mr-1"></i> Supplier
+                                        </label>
+                                        <select id="supplierId" name="supplierId" class="form-control form-control-sm">
+                                            <option value="">All Suppliers</option>
+                                            @if (ViewBag.SupplierList != null)
+                                            {
+                                                @foreach (var item in ViewBag.SupplierList as SelectList)
+                                                {
+                                                    <option value="@item.Value">@item.Text</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group mb-0">
+                                        <label for="orderDate" class="small font-weight-bold">
+                                            <i class="fas fa-calendar mr-1"></i> Order Date
+                                        </label>
+                                        <input type="date" id="orderDate" name="orderDate" class="form-control form-control-sm" />
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group mb-0">
+                                        <label for="status" class="small font-weight-bold">
+                                            <i class="fas fa-flag mr-1"></i> Status
+                                        </label>
+                                        <select id="status" name="status" class="form-control form-control-sm">
+                                            @if (ViewBag.StatusList != null)
+                                            {
+                                                @foreach (var item in ViewBag.StatusList as List<SelectListItem>)
+                                                {
+                                                    <option value="@item.Value">@item.Text</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group mb-0">
+                                        <label for="categoryId" class="small font-weight-bold">
+                                            <i class="fas fa-folder mr-1"></i> Category
+                                        </label>
+                                        <select id="categoryId" name="categoryId" class="form-control form-control-sm">
+                                            <option value="">All Categories</option>
+                                            @if (ViewBag.CategoryList != null)
+                                            {
+                                                @foreach (var item in ViewBag.CategoryList as SelectList)
+                                                {
+                                                    <option value="@item.Value">@item.Text</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group mb-0">
+                                        <label for="productId" class="small font-weight-bold">
+                                            <i class="fas fa-box mr-1"></i> Product
+                                        </label>
+                                        <select id="productId" name="productId" class="form-control form-control-sm">
+                                            <option value="">All Products</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group mb-0">
+                                        <label>&nbsp;</label>
+                                        <div class="btn-group w-100">
+                                            <button type="submit" class="btn btn-primary btn-sm">
+                                                <i class="fas fa-filter"></i> Filter
+                                            </button>
+                                            <a asp-action="Index" class="btn btn-secondary btn-sm">
+                                                <i class="fas fa-times"></i> Clear
+                                            </a>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </form>
             </div>
-            <div class="card-body table-responsive p-0">
-                <table id="poTable" class="table table-hover text-nowrap table-valign-middle">
-                    <thead class="bg-light">
-                        <tr>
-                            <th>PO Number</th>
-                            <th>Supplier</th>
-                            <th>Date</th>
-                            <th class="text-right">Total Amount</th>
-                            <th>Status</th>
-                            <th class="text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (Model != null && Model.Any())
-                        {
-                            @foreach (var item in Model)
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table id="poTable" class="table table-hover table-striped align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="border-top-0">
+                                    <i class="fas fa-hashtag mr-1"></i> PO Number
+                                </th>
+                                <th class="border-top-0">
+                                    <i class="fas fa-truck mr-1"></i> Supplier
+                                </th>
+                                <th class="border-top-0">
+                                    <i class="fas fa-calendar-alt mr-1"></i> Date
+                                </th>
+                                <th class="border-top-0 text-right">
+                                    <i class="fas fa-dollar-sign mr-1"></i> Total Amount
+                                </th>
+                                <th class="border-top-0">
+                                    <i class="fas fa-flag mr-1"></i> Status
+                                </th>
+                                <th class="border-top-0 text-center">
+                                    <i class="fas fa-cogs mr-1"></i> Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model != null && Model.Any())
+                            {
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            <span class="badge badge-primary px-3 py-2 font-weight-bold">@item.PONumber</span>
+                                        </td>
+                                        <td>
+                                            <strong class="text-dark">@(item.Supplier?.Name ?? "N/A")</strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-light text-muted">
+                                                <i class="fas fa-calendar mr-1"></i> @item.OrderDate.ToString("dd MMM yyyy")
+                                            </span>
+                                        </td>
+                                        <td class="text-right">
+                                            <span class="badge badge-success px-3 py-2 font-weight-bold">@item.TotalAmount.ToString("N2")</span>
+                                        </td>
+                                        <td>
+                                            @if (item.Status == "Pending")
+                                            {
+                                                <span class="badge badge-warning px-3 py-2 text-dark rounded-pill">
+                                                    <i class="fas fa-clock mr-1"></i> @item.Status
+                                                </span>
+                                            }
+                                            else if (item.Status == "Received")
+                                            {
+                                                <span class="badge badge-success px-3 py-2 rounded-pill">
+                                                    <i class="fas fa-check-circle mr-1"></i> @item.Status
+                                                </span>
+                                            }
+                                            else if (item.Status == "Partially Received")
+                                            {
+                                                <span class="badge badge-info px-3 py-2 rounded-pill">
+                                                    <i class="fas fa-box mr-1"></i> @item.Status
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge badge-secondary px-3 py-2 rounded-pill">
+                                                    @item.Status
+                                                </span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group">
+                                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                @if (item.Status == "Pending" || item.Status == "Partially Received")
+                                                {
+                                                    <a asp-controller="GRN" asp-action="Create" asp-route-poId="@item.Id" class="btn btn-success btn-sm" title="Receive Goods">
+                                                        <i class="fas fa-truck-loading"></i>
+                                                    </a>
+                                                }
+                                                @if (item.Status == "Received" || item.Status == "Partially Received")
+                                                {
+                                                    <a asp-controller="GRN" asp-action="DetailsByPO" asp-route-poId="@item.Id" class="btn btn-primary btn-sm" title="GRN Details">
+                                                        <i class="fas fa-file-alt"></i>
+                                                    </a>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
                             {
                                 <tr>
-                                    <td><span class="badge badge-secondary p-2">@item.PONumber</span></td>
-                                    <td class="font-weight-bold">@(item.Supplier?.Name ?? "N/A")</td>
-                                    <td class="text-muted">@item.OrderDate.ToString("dd-MM-yyyy")</td>
-                                    <td class="text-right font-weight-bold text-success">@item.TotalAmount.ToString("N2")</td>
-                                    <td>
-                                        @if (item.Status == "Pending")
-                                        {
-                                            <span class="badge badge-warning px-3 py-2 text-dark rounded-pill" style="font-size: 0.9rem;">
-                                                <i class="fas fa-clock"></i> @item.Status
-                                            </span>
-                                        }
-                                        else if (item.Status == "Received")
-                                        {
-                                            <span class="badge badge-success px-3 py-2 rounded-pill" style="font-size: 0.9rem;">
-                                                <i class="fas fa-check-circle"></i> @item.Status
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge badge-secondary px-3 py-2 rounded-pill" style="font-size: 0.9rem;">
-                                                @item.Status
-                                            </span>
-                                        }
-                                    </td>
-                                    <td class="text-center">
-                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info">
-                                            <i class="fas fa-eye"></i> View
-                                        </a>
-                                        @if (item.Status == "Pending" || item.Status == "Partially Received")
-                                        {
-                                            <a asp-controller="GRN" asp-action="Create" asp-route-poId="@item.Id" class="btn btn-sm btn-success">
-                                                <i class="fas fa-truck-loading"></i> Receive Goods
-                                            </a>
-                                        }
-                                        @if (item.Status == "Received" || item.Status == "Partially Received")
-                                        {
-                                            <a asp-controller="GRN" asp-action="DetailsByPO" asp-route-poId="@item.Id" class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-file-alt"></i> GRN Details
-                                            </a>
-                                        }
+                                    <td colspan="6" class="text-center py-5">
+                                        <i class="fas fa-file-invoice fa-3x text-muted mb-3"></i>
+                                        <p class="text-muted">No Purchase Orders found.</p>
                                     </td>
                                 </tr>
                             }
-                        }
-                        else
-                        {
-                            <tr>
-                                <td colspan="6" class="text-center py-4 text-muted">No Purchase Orders found.</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer bg-light">
+                <small class="text-muted">
+                    <i class="fas fa-info-circle mr-1"></i> Total: @Model.Count() purchase orders
+                </small>
             </div>
         </div>
     </div>
@@ -192,7 +258,16 @@
         "searching": true,
         "ordering": true,
         "info": true,
-        "autoWidth": false
+        "autoWidth": false,
+        "responsive": true,
+        "pageLength": 10,
+        "lengthMenu": [5, 10, 25, 50, 100],
+        "language": {
+            "paginate": {
+                "previous": "<i class='fas fa-chevron-left'></i>",
+                "next": "<i class='fas fa-chevron-right'></i>"
+            }
+        }
         });
 
         // Function to load products
@@ -270,10 +345,12 @@
             <text>
                 Swal.fire({
                 icon: 'success',
-                title: 'Successful',
+                title: 'Success',
                 text: '@TempData["Success"]',
                 timer: 3000,
-                showConfirmButton: false
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
                 });
             </text>
         }

@@ -7,10 +7,16 @@
 <section class="content-header">
     <div class="container-fluid">
         <div class="row mb-2">
-            <div class="col-sm-8">
-                <h1>
-                    <i class="fas fa-file-invoice mr-2 text-primary"></i> @pageTitle
+            <div class="col-sm-6">
+                <h1 class="display-6 h3">
+                    <i class="fas fa-truck-loading text-primary mr-2"></i> @pageTitle
                 </h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Home</a></li>
+                    <li class="breadcrumb-item active">GRN</li>
+                </ol>
             </div>
         </div>
     </div>
@@ -19,67 +25,111 @@
 <section class="content">
     <div class="container-fluid">
         <div class="card card-outline card-primary shadow-sm">
-            <div class="card-body">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-list mr-2"></i> GRN List
+                </h3>
+            </div>
+            <div class="card-body p-3">
                 <form asp-action="Index" method="get" class="mb-3">
-                    <div class="row">
-                        <div class="col-md-5">
-                            <div class="form-group">
-                                <label for="poNumber">PO Number</label>
-                                <input type="text" id="poNumber" name="poNumber" class="form-control form-control-sm" placeholder="Enter PO Number" />
-                            </div>
-                        </div>
-                        <div class="col-md-5">
-                            <div class="form-group">
-                                <label for="receivedDate">Received Date</label>
-                                <input type="date" id="receivedDate" name="receivedDate" class="form-control form-control-sm" />
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="form-group">
-                                <label>&nbsp;</label>
-                                <div>
-                                    <button type="submit" class="btn btn-primary btn-sm">
-                                        <i class="fas fa-filter"></i> Filter
-                                    </button>
-                                    <a asp-action="Index" class="btn btn-secondary btn-sm">
-                                        <i class="fas fa-times"></i> Clear
-                                    </a>
+                    <div class="card bg-light">
+                        <div class="card-body py-3">
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <div class="form-group mb-0">
+                                        <label for="poNumber" class="small font-weight-bold">
+                                            <i class="fas fa-hashtag mr-1"></i> PO Number
+                                        </label>
+                                        <input type="text" id="poNumber" name="poNumber" class="form-control form-control-sm" placeholder="Enter PO Number" />
+                                    </div>
+                                </div>
+                                <div class="col-md-5">
+                                    <div class="form-group mb-0">
+                                        <label for="receivedDate" class="small font-weight-bold">
+                                            <i class="fas fa-calendar mr-1"></i> Received Date
+                                        </label>
+                                        <input type="date" id="receivedDate" name="receivedDate" class="form-control form-control-sm" />
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group mb-0">
+                                        <label>&nbsp;</label>
+                                        <div class="btn-group w-100">
+                                            <button type="submit" class="btn btn-primary btn-sm">
+                                                <i class="fas fa-filter"></i> Filter
+                                            </button>
+                                            <a asp-action="Index" class="btn btn-secondary btn-sm">
+                                                <i class="fas fa-times"></i> Clear
+                                            </a>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </form>
             </div>
-            <div class="card-body p-0 table-responsive">
-                <table class="table table-hover table-striped align-middle">
-                    <thead class="bg-light">
-                        <tr>
-                            <th>GRN Number</th>
-                            <th>PO Number</th>
-                            <th>Received Date</th>
-                            <th class="text-center">Items</th>
-                            <th>Remarks</th>
-                            <th class="text-center">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model)
-                        {
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table id="grnTable" class="table table-hover table-striped align-middle mb-0">
+                        <thead class="bg-light">
                             <tr>
-                                <td><span class="badge badge-info p-2 font-weight-bold">@item.GRNNumber</span></td>
-                                <td><strong>@(item.PurchaseOrder?.PONumber ?? "N/A")</strong></td>
-                                <td class="text-muted">@item.ReceivedDate.ToString("dd MMM yyyy")</td>
-                                <td class="text-center"><span class="badge badge-secondary">@item.GRNDetails.Count()</span></td>
-                                <td>@(string.IsNullOrWhiteSpace(item.Remarks) ? "-" : item.Remarks)</td>
-                                <td class="text-center">
-                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary shadow-sm">
-                                        <i class="fas fa-eye"></i> View Details
-                                    </a>
-                                </td>
+                                <th class="border-top-0">
+                                    <i class="fas fa-hashtag mr-1"></i> GRN Number
+                                </th>
+                                <th class="border-top-0">
+                                    <i class="fas fa-file-invoice mr-1"></i> PO Number
+                                </th>
+                                <th class="border-top-0">
+                                    <i class="fas fa-calendar-alt mr-1"></i> Received Date
+                                </th>
+                                <th class="border-top-0 text-center">
+                                    <i class="fas fa-boxes mr-1"></i> Items
+                                </th>
+                                <th class="border-top-0">
+                                    <i class="fas fa-comment mr-1"></i> Remarks
+                                </th>
+                                <th class="border-top-0 text-center">
+                                    <i class="fas fa-cogs mr-1"></i> Action
+                                </th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <span class="badge badge-info px-3 py-2 font-weight-bold">@item.GRNNumber</span>
+                                    </td>
+                                    <td>
+                                        <strong class="text-dark">@(item.PurchaseOrder?.PONumber ?? "N/A")</strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-light text-muted">
+                                            <i class="fas fa-calendar mr-1"></i> @item.ReceivedDate.ToString("dd MMM yyyy")
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge badge-success px-3 py-2 font-weight-bold">@item.GRNDetails.Count()</span>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted small">@(string.IsNullOrWhiteSpace(item.Remarks) ? "-" : item.Remarks)</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-primary btn-sm" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer bg-light">
+                <small class="text-muted">
+                    <i class="fas fa-info-circle mr-1"></i> Total: @Model.Count() GRNs
+                </small>
             </div>
         </div>
     </div>
@@ -88,6 +138,25 @@
 @section Scripts {
     <script>
         $(function () {
+            $('#grnTable').DataTable({
+                "paging": true,
+                "lengthChange": false,
+                "searching": true,
+                "ordering": true,
+                "info": false,
+                "autoWidth": false,
+                "responsive": true,
+                "pageLength": 10,
+                "language": {
+                    "paginate": {
+                        "previous": "<i class='fas fa-chevron-left'></i>",
+                        "next": "<i class='fas fa-chevron-right'></i>"
+                    }
+                },
+                "dom": "<'row'<'col-sm-12'tr>>" +
+                      "<'row'<'col-sm-12 text-center'p>>"
+            });
+
             // Preserve selected values after postback
             @if (Context.Request.Query["poNumber"].Count > 0)
             {

@@ -4,11 +4,13 @@
     ViewData["Title"] = "Expiry Management";
 }
 
-<div class="content-header">
+<section class="content-header">
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1>Expiry Management</h1>
+                <h1 class="display-6 h3">
+                    <i class="fas fa-calendar-times text-primary mr-2"></i> Expiry Management
+                </h1>
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
@@ -18,23 +20,23 @@
             </div>
         </div>
     </div>
-</div>
+</section>
 
-<div class="content">
+<section class="content">
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-3">
+        <div class="row mb-3">
+            <div class="col-md-4">
                 <div class="small-box bg-danger">
                     <div class="inner">
                         <h3>@ViewBag.ExpiredCount</h3>
                         <p>Already Expired</p>
                     </div>
                     <div class="icon">
-                        <i class="fas fa-exclamation-circle"></i>
+                        <i class="fas fa-exclamation-triangle"></i>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="small-box bg-warning">
                     <div class="inner">
                         <h3>@ViewBag.ExpiringSoonCount</h3>
@@ -45,7 +47,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="small-box bg-info">
                     <div class="inner">
                         <h3>@ViewBag.ExpiringCount</h3>
@@ -58,89 +60,133 @@
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Expiring Items</h3>
+        <div class="card card-outline card-primary shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-list mr-2"></i> Expiring Items
+                </h3>
                 <div class="card-tools">
                     <form asp-action="Index" method="get" class="form-inline">
                         <div class="input-group input-group-sm">
                             <input type="number" name="daysThreshold" class="form-control" value="@ViewBag.DaysThreshold" placeholder="Days" min="1" />
                             <span class="input-group-append">
-                                <button type="submit" class="btn btn-info">Filter</button>
+                                <button type="submit" class="btn btn-light">
+                                    <i class="fas fa-filter"></i> Filter
+                                </button>
                             </span>
                         </div>
                     </form>
                 </div>
             </div>
             <div class="card-body p-0">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Product</th>
-                            <th>Item Code</th>
-                            <th>Expiry Date</th>
-                            <th>Days Until Expiry</th>
-                            <th>Current Stock</th>
-                            <th>Price</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (Model != null && Model.Any())
-                        {
-                            foreach (var item in Model)
+                <div class="table-responsive">
+                    <table id="expiryTable" class="table table-hover table-striped align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="border-top-0">
+                                    <i class="fas fa-box mr-1"></i> Product
+                                </th>
+                                <th class="border-top-0">
+                                    <i class="fas fa-barcode mr-1"></i> Item Code
+                                </th>
+                                <th class="border-top-0">
+                                    <i class="fas fa-calendar-alt mr-1"></i> Expiry Date
+                                </th>
+                                <th class="border-top-0 text-center">
+                                    <i class="fas fa-hourglass-half mr-1"></i> Days Until Expiry
+                                </th>
+                                <th class="border-top-0 text-center">
+                                    <i class="fas fa-cubes mr-1"></i> Current Stock
+                                </th>
+                                <th class="border-top-0">
+                                    <i class="fas fa-dollar-sign mr-1"></i> Price
+                                </th>
+                                <th class="border-top-0 text-center">
+                                    <i class="fas fa-cogs mr-1"></i> Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model != null && Model.Any())
                             {
-                                var daysUntilExpiry = (item.ExpiryDate - DateTime.Now).Value.Days;
-                                var isExpired = daysUntilExpiry <= 0;
-                                
-                                <tr class="@(isExpired ? "table-danger" : daysUntilExpiry <= 7 ? "table-warning" : "")">
-                                    <td>@item.Product?.Name</td>
-                                    <td>@item.ItemCode</td>
-                                    <td>@item.ExpiryDate?.ToString("yyyy-MM-dd")</td>
-                                    <td>
-                                        <span class="badge badge-@(isExpired ? "danger" : daysUntilExpiry <= 7 ? "warning" : "info")">
-                                            @daysUntilExpiry days
-                                        </span>
-                                    </td>
-                                    <td>@item.CurrentStockQuantity</td>
-                                    <td>@item.SellingPrice</td>
-                                    <td>
-                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        @if (isExpired)
-                                        {
-                                            <button onclick="showWriteOffModal(@item.Id, '@item.Product?.Name', @item.CurrentStockQuantity)" class="btn btn-sm btn-danger">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        }
-                                        <a asp-action="Reorder" asp-route-id="@item.Id" class="btn btn-sm btn-success">
-                                            <i class="fas fa-shopping-cart"></i>
-                                        </a>
+                                foreach (var item in Model)
+                                {
+                                    var daysUntilExpiry = (item.ExpiryDate - DateTime.Now).Value.Days;
+                                    var isExpired = daysUntilExpiry <= 0;
+                                    
+                                    <tr class="@(isExpired ? "table-danger bg-danger-light" : daysUntilExpiry <= 7 ? "table-warning bg-warning-light" : "")">
+                                        <td>
+                                            <strong class="text-dark">@item.Product?.Name</strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-secondary">@item.ItemCode</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-light text-muted">
+                                                <i class="fas fa-calendar mr-1"></i> @item.ExpiryDate?.ToString("dd MMM yyyy")
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge badge-@(isExpired ? "danger" : daysUntilExpiry <= 7 ? "warning" : "info") px-3 py-2 font-weight-bold">
+                                                @daysUntilExpiry days
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge badge-success px-3 py-2 font-weight-bold">@item.CurrentStockQuantity</span>
+                                        </td>
+                                        <td>
+                                            <span class="text-primary font-weight-bold">@item.SellingPrice.ToString("F2")</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group">
+                                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                @if (isExpired)
+                                                {
+                                                    <button onclick="showWriteOffModal(@item.Id, '@item.Product?.Name', @item.CurrentStockQuantity)" class="btn btn-danger btn-sm" title="Write Off">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                }
+                                                <a asp-action="Reorder" asp-route-id="@item.Id" class="btn btn-success btn-sm" title="Reorder">
+                                                    <i class="fas fa-shopping-cart"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="7" class="text-center py-5">
+                                        <i class="fas fa-calendar-check fa-3x text-muted mb-3"></i>
+                                        <p class="text-muted">No expiring items found</p>
                                     </td>
                                 </tr>
                             }
-                        }
-                        else
-                        {
-                            <tr>
-                                <td colspan="7" class="text-center">No expiring items found</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer bg-light">
+                <small class="text-muted">
+                    <i class="fas fa-info-circle mr-1"></i> Total: @Model.Count() expiring items
+                </small>
             </div>
         </div>
     </div>
-</div>
+</section>
 
 <!-- Write Off Modal -->
 <div class="modal fade" id="writeOffModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Write Off Item</h5>
-                <button type="button" class="close" data-dismiss="modal">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-trash mr-2"></i> Write Off Item
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal">
                     <span>&times;</span>
                 </button>
             </div>
@@ -148,18 +194,26 @@
                 <form asp-action="WriteOff" method="post">
                     <input type="hidden" id="writeOffId" name="id" />
                     <div class="form-group">
-                        <label>Product</label>
+                        <label>
+                            <i class="fas fa-box mr-1"></i> Product
+                        </label>
                         <input type="text" id="writeOffProduct" class="form-control" readonly />
                     </div>
                     <div class="form-group">
-                        <label>Quantity to Write Off</label>
+                        <label>
+                            <i class="fas fa-cubes mr-1"></i> Quantity to Write Off
+                        </label>
                         <input type="text" id="writeOffQuantity" class="form-control" readonly />
                     </div>
                     <div class="form-group">
-                        <label>Reason</label>
+                        <label>
+                            <i class="fas fa-comment mr-1"></i> Reason
+                        </label>
                         <input type="text" name="reason" class="form-control" required placeholder="e.g., Expired, Damaged" />
                     </div>
-                    <button type="submit" class="btn btn-danger">Write Off</button>
+                    <button type="submit" class="btn btn-danger btn-block">
+                        <i class="fas fa-trash mr-1"></i> Write Off
+                    </button>
                 </form>
             </div>
         </div>
@@ -167,7 +221,29 @@
 </div>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        $(document).ready(function() {
+            $('#expiryTable').DataTable({
+                "paging": true,
+                "lengthChange": false,
+                "searching": true,
+                "ordering": true,
+                "info": false,
+                "autoWidth": false,
+                "responsive": true,
+                "pageLength": 10,
+                "language": {
+                    "paginate": {
+                        "previous": "<i class='fas fa-chevron-left'></i>",
+                        "next": "<i class='fas fa-chevron-right'></i>"
+                    }
+                },
+                "dom": "<'row'<'col-sm-12'tr>>" +
+                      "<'row'<'col-sm-12 text-center'p>>"
+            });
+        });
+
         function showWriteOffModal(id, productName, quantity) {
             document.getElementById('writeOffId').value = id;
             document.getElementById('writeOffProduct').value = productName;

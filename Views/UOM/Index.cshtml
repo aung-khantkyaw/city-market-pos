@@ -7,7 +7,15 @@
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1>Unit of Measurement (UOM)</h1>
+                <h1 class="display-6 h3">
+                    <i class="fas fa-balance-scale text-primary mr-2"></i> Unit of Measurement (UOM)
+                </h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Home</a></li>
+                    <li class="breadcrumb-item active">UOM</li>
+                </ol>
             </div>
         </div>
     </div>
@@ -16,48 +24,72 @@
 <section class="content">
     <div class="container-fluid">
         <div class="card card-primary card-outline shadow">
-            <div class="card-header d-flex align-items-center">
-                <h3 class="card-title"><i class="fas fa-balance-scale mr-2"></i> UOM List</h3>
-                <button type="button" class="btn btn-primary btn-sm ml-auto" data-toggle="modal" data-target="#createUomModal">
-                    <i class="fas fa-plus"></i> Add UOM
-                </button>
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-list mr-2"></i> UOM List
+                </h3>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-light btn-sm" data-toggle="modal" data-target="#createUomModal">
+                        <i class="fas fa-plus mr-1"></i> Add UOM
+                    </button>
+                </div>
             </div>
-            <div class="card-body p-0 table-responsive">
-                <table class="table table-hover table-striped">
-                    <thead>
-                        <tr>
-                            <th>Full Name</th>
-                            <th>Short Name (Abbreviation)</th>
-                            <th style="width: 150px;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model)
-                        {
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table id="uomTable" class="table table-hover table-striped align-middle mb-0">
+                        <thead class="bg-light">
                             <tr>
-                                <td>@item.Name</td>
-                                <td><span class="badge badge-secondary">@item.ShortName</span></td>
-                                <td>
-                                    <div class="d-flex">
-                                        <button type="button"
-                                                class="btn btn-info btn-sm mr-2 edit-uom-btn"
-                                                data-toggle="modal"
-                                                data-target="#editUomModal"
-                                                data-id="@item.Id"
-                                                data-name="@item.Name"
-                                                data-shortname="@item.ShortName">
-                                            <i class="fas fa-edit"></i> Edit
-                                        </button>
-
-                                        <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Delete this UOM?');">
-                                            <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Delete</button>
-                                        </form>
-                                    </div>
-                                </td>
+                                <th class="border-top-0">
+                                    <i class="fas fa-font mr-1"></i> Full Name
+                                </th>
+                                <th class="border-top-0">
+                                    <i class="fas fa-tag mr-1"></i> Short Name
+                                </th>
+                                <th class="border-top-0 text-center" style="width: 150px;">
+                                    <i class="fas fa-cogs mr-1"></i> Actions
+                                </th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong class="text-dark">@item.Name</strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-secondary px-3 py-2 font-weight-bold">@item.ShortName</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group">
+                                            <button type="button"
+                                                    class="btn btn-info btn-sm edit-uom-btn"
+                                                    data-toggle="modal"
+                                                    data-target="#editUomModal"
+                                                    data-id="@item.Id"
+                                                    data-name="@item.Name"
+                                                    data-shortname="@item.ShortName"
+                                                    title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+
+                                            <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Are you sure you want to delete this UOM?');" class="d-inline">
+                                                <button type="submit" class="btn btn-danger btn-sm" title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer bg-light">
+                <small class="text-muted">
+                    <i class="fas fa-info-circle mr-1"></i> Total: @Model.Count() UOMs
+                </small>
             </div>
         </div>
     </div>
@@ -140,6 +172,24 @@
         }
 
         $(document).ready(function () {
+            $('#uomTable').DataTable({
+                "paging": true,
+                "lengthChange": false,
+                "searching": true,
+                "ordering": true,
+                "info": false,
+                "autoWidth": false,
+                "responsive": true,
+                "pageLength": 10,
+                "language": {
+                    "paginate": {
+                        "previous": "<i class='fas fa-chevron-left'></i>",
+                        "next": "<i class='fas fa-chevron-right'></i>"
+                    }
+                },
+                "dom": "<'row'<'col-sm-12'tr>>" +
+                      "<'row'<'col-sm-12 text-center'p>>"
+            });
 
             // --- Create Logic ---
             $('#createName, #createShortName').on('input', function () {
