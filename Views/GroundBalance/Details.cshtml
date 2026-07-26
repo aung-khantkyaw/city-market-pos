@@ -1,0 +1,120 @@
+@model CityMarketPOS.Models.GroundBalance
+@{
+    ViewData["Title"] = "Ground Balance Details";
+}
+
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1><i class="fas fa-clipboard-check text-primary"></i> Ground Balance Details</h1>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="card card-outline card-primary shadow-sm">
+            <div class="card-header border-0 bg-white pt-3">
+                <h3 class="card-title font-weight-bold">@Model.BatchNo</h3>
+                <a asp-action="Index" class="btn btn-secondary float-right">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <strong>GB Date:</strong>
+                        <span class="ml-2">@Model.GBDate.ToString("dd-MM-yyyy")</span>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Status:</strong>
+                        <span class="ml-2">
+                            @if (Model.Status == "Pending")
+                            {
+                                <span class="badge badge-warning">@Model.Status</span>
+                            }
+                            else if (Model.Status == "Completed")
+                            {
+                                <span class="badge badge-success">@Model.Status</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-danger">@Model.Status</span>
+                            }
+                        </span>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Created By:</strong>
+                        <span class="ml-2">@Model.CreatedUser</span>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Remarks:</strong>
+                        <span class="ml-2">@(string.IsNullOrWhiteSpace(Model.Remark) ? "-" : Model.Remark)</span>
+                    </div>
+                </div>
+
+                <hr />
+                <h5 class="mb-3">Item Details</h5>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>Item Code</th>
+                                <th>Actual Qty</th>
+                                <th>Inventory Qty</th>
+                                <th>Different Qty</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.GroundBalanceDetails != null && Model.GroundBalanceDetails.Any())
+                            {
+                                @foreach (var detail in Model.GroundBalanceDetails)
+                                {
+                                    <tr>
+                                        <td><strong>@detail.ItemCode</strong></td>
+                                        <td class="text-center">@detail.ActualQty</td>
+                                        <td class="text-center">@detail.InventoryQty</td>
+                                        <td class="text-center">
+                                            @if (detail.DifferentQty > 0)
+                                            {
+                                                <span class="badge badge-success">+@detail.DifferentQty</span>
+                                            }
+                                            else if (detail.DifferentQty < 0)
+                                            {
+                                                <span class="badge badge-danger">@detail.DifferentQty</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge badge-secondary">@detail.DifferentQty</span>
+                                            }
+                                        </td>
+                                        <td>@(string.IsNullOrWhiteSpace(detail.Remark) ? "-" : detail.Remark)</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">No item details found.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-3">
+                    <a asp-action="Edit" asp-route-batchNo="@Model.BatchNo" class="btn btn-warning">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                    <a asp-action="Delete" asp-route-batchNo="@Model.BatchNo" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Delete
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

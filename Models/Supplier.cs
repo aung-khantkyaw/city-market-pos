@@ -17,5 +17,6 @@ namespace CityMarketPOS.Models
         public string Address { get; set; }
         public bool IsDeleted { get; set; } = false;
         public virtual ICollection<Product> Products { get; set; } = new List<Product>();
+        public virtual ICollection<PurchaseOrder> PurchaseOrders { get; set; } = new List<PurchaseOrder>();
     }
 }

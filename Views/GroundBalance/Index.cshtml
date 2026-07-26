@@ -1,0 +1,147 @@
+@model IEnumerable<CityMarketPOS.Models.GroundBalance>
+@{
+    ViewData["Title"] = "Ground Balance";
+}
+
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1><i class="fas fa-clipboard-check text-primary"></i> Ground Balance</h1>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="card card-outline card-primary shadow-sm">
+            <div class="card-header border-0 bg-white pt-3">
+                <h3 class="card-title font-weight-bold">GB History</h3>
+                <button type="button" class="btn btn-primary float-right" onclick="location.href='@Url.Action("Create")'">
+                    <i class="fas fa-plus mr-1"></i> New GB Check
+                </button>
+            </div>
+            <div class="card-body">
+                <form asp-action="Index" method="get" class="mb-3">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label for="gbDate">GB Date</label>
+                                <input type="date" id="gbDate" name="gbDate" class="form-control form-control-sm" />
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label for="status">Status</label>
+                                <select id="status" name="status" class="form-control form-control-sm">
+                                    @if (ViewBag.StatusList != null)
+                                    {
+                                        @foreach (var item in ViewBag.StatusList as List<SelectListItem>)
+                                        {
+                                            <option value="@item.Value">@item.Text</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>&nbsp;</label>
+                                <div>
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-filter"></i> Filter
+                                    </button>
+                                    <a asp-action="Index" class="btn btn-secondary btn-sm">
+                                        <i class="fas fa-times"></i> Clear
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="card-body table-responsive p-0">
+                <table class="table table-hover text-nowrap table-valign-middle">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Batch No</th>
+                            <th>GB Date</th>
+                            <th>Status</th>
+                            <th class="text-center">Items</th>
+                            <th>Remarks</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td><span class="badge badge-secondary p-2">@item.BatchNo</span></td>
+                                    <td class="text-muted">@item.GBDate.ToString("dd-MM-yyyy")</td>
+                                    <td>
+                                        @if (item.Status == "Pending")
+                                        {
+                                            <span class="badge badge-warning px-3 py-2 text-dark rounded-pill" style="font-size: 0.9rem;">
+                                                <i class="fas fa-clock"></i> @item.Status
+                                            </span>
+                                        }
+                                        else if (item.Status == "Completed")
+                                        {
+                                            <span class="badge badge-success px-3 py-2 rounded-pill" style="font-size: 0.9rem;">
+                                                <i class="fas fa-check-circle"></i> @item.Status
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-danger px-3 py-2 rounded-pill" style="font-size: 0.9rem;">
+                                                @item.Status
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="text-center"><span class="badge badge-info">@item.GroundBalanceDetails.Count()</span></td>
+                                    <td>@(string.IsNullOrWhiteSpace(item.Remark) ? "-" : item.Remark)</td>
+                                    <td class="text-center">
+                                        <a asp-action="Details" asp-route-batchNo="@item.BatchNo" class="btn btn-sm btn-outline-info">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                        <a asp-action="Edit" asp-route-batchNo="@item.BatchNo" class="btn btn-sm btn-outline-warning">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </a>
+                                        <a asp-action="Delete" asp-route-batchNo="@item.BatchNo" class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">No Ground Balance records found.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        $(function () {
+            // Preserve selected values after postback
+            @if (Context.Request.Query["gbDate"].Count > 0)
+            {
+                <text>$('#gbDate').val('@Context.Request.Query["gbDate"]');</text>
+            }
+            @if (Context.Request.Query["status"].Count > 0)
+            {
+                <text>$('#status').val('@Context.Request.Query["status"]');</text>
+            }
+        });
+    </script>
+}

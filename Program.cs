@@ -24,6 +24,7 @@ builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddScoped<ICounterRepository, CounterRepository>();
 builder.Services.AddScoped<IPOSSessionRepository, POSSessionRepository>();
 builder.Services.AddScoped<ISaleRepository, SaleRepository>();
+builder.Services.AddScoped<IGroundBalanceRepository, GroundBalanceRepository>();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {

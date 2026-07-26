@@ -1,4 +1,5 @@
 using CityMarketPOS.Models;
+using CityMarketPOS.Models.ViewModels;
 using CityMarketPOS.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,6 +29,8 @@ namespace CityMarketPOS.Controllers
                 .Include(g => g.Product)
                     .ThenInclude(p => p.Category)
                 .Include(g => g.GRN)
+                    .ThenInclude(grn => grn.PurchaseOrder)
+                    .ThenInclude(po => po.Supplier)
                 .AsQueryable();
 
             // Filter by search term (product name or item code)
@@ -57,9 +60,22 @@ namespace CityMarketPOS.Controllers
                 query = query.Where(g => g.ExpiryDate.HasValue && g.ExpiryDate <= thirtyDaysFromNow);
             }
 
-            var stockDetails = await query
-                .OrderBy(g => g.Product.Name)
-                .ToListAsync();
+            var stockDetails = await query.ToListAsync();
+
+            // Group by Purchase Order - only include items with valid GRN and PO
+            var groupedByPO = stockDetails
+                .Where(g => g.GRN != null && g.GRN.PurchaseOrder != null)
+                .GroupBy(g => new { g.GRN.PurchaseOrder.Id, g.GRN.PurchaseOrder.PONumber, g.GRN.PurchaseOrder.OrderDate, g.GRN.PurchaseOrder.Supplier })
+                .Select(g => new StockGroupViewModel
+                {
+                    POId = g.Key.Id,
+                    PONumber = g.Key.PONumber,
+                    OrderDate = g.Key.OrderDate,
+                    Supplier = g.Key.Supplier?.Name ?? "N/A",
+                    Details = g.ToList()
+                })
+                .OrderByDescending(g => g.OrderDate)
+                .ToList();
 
             // Get categories for dropdown
             ViewBag.Categories = await _context.Categories.OrderBy(c => c.Name).ToListAsync();
@@ -68,7 +84,7 @@ namespace CityMarketPOS.Controllers
             ViewBag.LowStock = lowStock;
             ViewBag.ExpiringSoon = expiringSoon;
 
-            return View(stockDetails);
+            return View(groupedByPO);
         }
 
         public async Task<IActionResult> Details(int id)

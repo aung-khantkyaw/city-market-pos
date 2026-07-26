@@ -1,0 +1,197 @@
+@model CityMarketPOS.Models.GroundBalance
+@{
+    ViewData["Title"] = "New Ground Balance";
+}
+
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1><i class="fas fa-clipboard-check text-primary"></i> New Ground Balance Check</h1>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="card card-outline card-primary shadow-sm">
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="BatchNo">Batch No</label>
+                                <input asp-for="BatchNo" class="form-control" readonly />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="GBDate">GB Date</label>
+                                <input asp-for="GBDate" type="date" class="form-control" />
+                                <span asp-validation-for="GBDate" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="Status">Status</label>
+                                <select asp-for="Status" class="form-control">
+                                    <option value="Pending">Pending</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="Remark">Remark</label>
+                                <input asp-for="Remark" class="form-control" placeholder="Enter remarks" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr />
+                    <h5 class="mb-3">Item Details</h5>
+                    
+                    <div id="itemRows">
+                        <div class="item-row row mb-2">
+                            <div class="col-md-3">
+                                <label>Item Code</label>
+                                <select name="ItemCode[]" class="form-control item-code-select" required onchange="loadInventoryQty(this)">
+                                    <option value="">Select Item Code</option>
+                                    @if (ViewBag.ItemCodeList != null)
+                                    {
+                                        @foreach (var item in ViewBag.ItemCodeList as SelectList)
+                                        {
+                                            <option value="@item.Value">@item.Text</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label>Actual Qty</label>
+                                <input type="number" name="ActualQty[]" class="form-control actual-qty" step="0.01" min="0" value="0" onchange="calculateDifferentQty(this)" />
+                            </div>
+                            <div class="col-md-2">
+                                <label>Inventory Qty</label>
+                                <input type="number" name="InventoryQty[]" class="form-control inventory-qty" step="0.01" min="0" value="0" readonly />
+                            </div>
+                            <div class="col-md-2">
+                                <label>Different Qty</label>
+                                <input type="number" name="DifferentQty[]" class="form-control different-qty" step="0.01" value="0" readonly />
+                            </div>
+                            <div class="col-md-2">
+                                <label>Remark</label>
+                                <input type="text" name="ItemRemarks[]" class="form-control" placeholder="Item remarks" />
+                            </div>
+                            <div class="col-md-1">
+                                <label>&nbsp;</label>
+                                <button type="button" class="btn btn-danger btn-sm remove-row" onclick="removeRow(this)">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-success btn-sm mt-2" onclick="addRow()">
+                        <i class="fas fa-plus"></i> Add Item
+                    </button>
+
+                    <hr />
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Ground Balance
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to List
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        let rowCount = 1;
+
+        function addRow() {
+            rowCount++;
+            const newRow = `
+                <div class="item-row row mb-2">
+                    <div class="col-md-3">
+                        <label>Item Code</label>
+                        <select name="ItemCode[]" class="form-control item-code-select" required onchange="loadInventoryQty(this)">
+                            <option value="">Select Item Code</option>
+                            @if (ViewBag.ItemCodeList != null)
+                            {
+                                @foreach (var item in ViewBag.ItemCodeList as SelectList)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label>Actual Qty</label>
+                        <input type="number" name="ActualQty[]" class="form-control actual-qty" step="0.01" min="0" value="0" onchange="calculateDifferentQty(this)" />
+                    </div>
+                    <div class="col-md-2">
+                        <label>Inventory Qty</label>
+                        <input type="number" name="InventoryQty[]" class="form-control inventory-qty" step="0.01" min="0" value="0" readonly />
+                    </div>
+                    <div class="col-md-2">
+                        <label>Different Qty</label>
+                        <input type="number" name="DifferentQty[]" class="form-control different-qty" step="0.01" value="0" readonly />
+                    </div>
+                    <div class="col-md-2">
+                        <label>Remark</label>
+                        <input type="text" name="ItemRemarks[]" class="form-control" placeholder="Item remarks" />
+                    </div>
+                    <div class="col-md-1">
+                        <label>&nbsp;</label>
+                        <button type="button" class="btn btn-danger btn-sm remove-row" onclick="removeRow(this)">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            $('#itemRows').append(newRow);
+        }
+
+        function removeRow(button) {
+            if ($('.item-row').length > 1) {
+                $(button).closest('.item-row').remove();
+            } else {
+                alert('At least one item row is required.');
+            }
+        }
+
+        function loadInventoryQty(selectElement) {
+            const itemCode = $(selectElement).val();
+            const row = $(selectElement).closest('.item-row');
+            const inventoryQtyInput = row.find('.inventory-qty');
+            
+            if (itemCode) {
+                $.get('@Url.Action("GetInventoryQty", "GroundBalance")', { itemCode: itemCode }, function (data) {
+                    inventoryQtyInput.val(data.inventoryQty);
+                    calculateDifferentQty(row.find('.actual-qty')[0]);
+                });
+            } else {
+                inventoryQtyInput.val(0);
+                calculateDifferentQty(row.find('.actual-qty')[0]);
+            }
+        }
+
+        function calculateDifferentQty(actualQtyInput) {
+            const row = $(actualQtyInput).closest('.item-row');
+            const actualQty = parseFloat($(actualQtyInput).val()) || 0;
+            const inventoryQty = parseFloat(row.find('.inventory-qty').val()) || 0;
+            const differentQty = actualQty - inventoryQty;
+            row.find('.different-qty').val(differentQty);
+        }
+    </script>
+}

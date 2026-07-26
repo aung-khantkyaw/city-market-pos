@@ -21,6 +21,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<POSSession> POSSessions { get; set; }
     public DbSet<Sale> Sales { get; set; }
     public DbSet<SaleDetail> SaleDetails { get; set; }
+    public DbSet<GroundBalance> GroundBalances { get; set; }
+    public DbSet<GroundBalanceDetail> GroundBalanceDetails { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

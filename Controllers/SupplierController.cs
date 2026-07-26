@@ -161,17 +161,47 @@ namespace CityMarketPOS.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            var supplier = await _supplierRepo.GetByIdAsync(id);
+            var supplier = await _context.Suppliers
+                .Include(s => s.PurchaseOrders)
+                    .ThenInclude(po => po.OrderDetails)
+                .Include(s => s.PurchaseOrders)
+                    .ThenInclude(po => po.GRNs)
+                    .ThenInclude(g => g.GRNDetails)
+                .FirstOrDefaultAsync(s => s.Id == id);
+
             if (supplier != null)
             {
-                supplier.IsDeleted = true;
-                _supplierRepo.Update(supplier); 
-                await _supplierRepo.SaveChangesAsync();
-
                 var user = await _userManager.GetUserAsync(User);
-                await _auditLogRepo.LogAsync("Supplier", id.ToString(), "Soft Delete", user?.Id ?? "System", user?.UserName ?? "System", $"Soft deleted supplier: {supplier.Name}");
+                var supplierName = supplier.Name;
 
-                TempData["Success"] = "Supplier removed successfully!";
+                // Cascade delete: GRN/GRN Details -> PO/PO Details -> Supplier
+                foreach (var po in supplier.PurchaseOrders.ToList())
+                {
+                    // Delete GRN Details first
+                    foreach (var grn in po.GRNs.ToList())
+                    {
+                        var grnDetails = await _context.GRNDetails.Where(g => g.GRNId == grn.Id).ToListAsync();
+                        _context.GRNDetails.RemoveRange(grnDetails);
+                    }
+
+                    // Delete GRNs
+                    _context.GRNs.RemoveRange(po.GRNs);
+
+                    // Delete PO Details
+                    _context.PurchaseOrderDetails.RemoveRange(po.OrderDetails);
+                }
+
+                // Delete POs
+                _context.PurchaseOrders.RemoveRange(supplier.PurchaseOrders);
+
+                // Delete Supplier
+                _context.Suppliers.Remove(supplier);
+
+                await _context.SaveChangesAsync();
+
+                await _auditLogRepo.LogAsync("Supplier", id.ToString(), "Delete", user?.Id ?? "System", user?.UserName ?? "System", $"Deleted supplier: {supplierName} with cascade delete of related POs and GRNs");
+
+                TempData["Success"] = "Supplier and all related data deleted successfully!";
             }
             return RedirectToAction(nameof(Index));
         }

@@ -100,7 +100,7 @@
                 </form>
             </div>
             <div class="card-body table-responsive p-0">
-                <table class="table table-hover text-nowrap table-valign-middle">
+                <table id="poTable" class="table table-hover text-nowrap table-valign-middle">
                     <thead class="bg-light">
                         <tr>
                             <th>PO Number</th>
@@ -186,7 +186,7 @@
 
     <script>
         $(function () {
-        $('.table').DataTable({
+        $('#poTable').DataTable({
         "paging": true,
         "lengthChange": true,
         "searching": true,

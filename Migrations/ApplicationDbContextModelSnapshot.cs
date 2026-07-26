@@ -318,6 +318,101 @@ namespace CityMarketPOS.Migrations
                     b.ToTable("GRNDetails");
                 });
 
+            modelBuilder.Entity("CityMarketPOS.Models.GroundBalance", b =>
+                {
+                    b.Property<string>("BatchNo")
+                        .HasMaxLength(25)
+                        .HasColumnType("nvarchar(25)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedUser")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("GBDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Remark")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedUser")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("BatchNo");
+
+                    b.ToTable("GroundBalances");
+                });
+
+            modelBuilder.Entity("CityMarketPOS.Models.GroundBalanceDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<float>("ActualQty")
+                        .HasColumnType("real");
+
+                    b.Property<string>("BatchNo")
+                        .IsRequired()
+                        .HasMaxLength(25)
+                        .HasColumnType("nvarchar(25)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedUser")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<float>("DifferentQty")
+                        .HasColumnType("real");
+
+                    b.Property<float>("InventoryQty")
+                        .HasColumnType("real");
+
+                    b.Property<string>("ItemCode")
+                        .IsRequired()
+                        .HasMaxLength(25)
+                        .HasColumnType("nvarchar(25)");
+
+                    b.Property<string>("Remark")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedUser")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BatchNo");
+
+                    b.ToTable("GroundBalanceDetails");
+                });
+
             modelBuilder.Entity("CityMarketPOS.Models.POSSession", b =>
                 {
                     b.Property<int>("Id")
@@ -823,6 +918,17 @@ namespace CityMarketPOS.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("CityMarketPOS.Models.GroundBalanceDetail", b =>
+                {
+                    b.HasOne("CityMarketPOS.Models.GroundBalance", "GroundBalance")
+                        .WithMany("GroundBalanceDetails")
+                        .HasForeignKey("BatchNo")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("GroundBalance");
+                });
+
             modelBuilder.Entity("CityMarketPOS.Models.POSSession", b =>
                 {
                     b.HasOne("CityMarketPOS.Models.Counter", "Counter")
@@ -998,6 +1104,11 @@ namespace CityMarketPOS.Migrations
             modelBuilder.Entity("CityMarketPOS.Models.GRN", b =>
                 {
                     b.Navigation("GRNDetails");
+                });
+
+            modelBuilder.Entity("CityMarketPOS.Models.GroundBalance", b =>
+                {
+                    b.Navigation("GroundBalanceDetails");
                 });
 
             modelBuilder.Entity("CityMarketPOS.Models.PurchaseOrder", b =>

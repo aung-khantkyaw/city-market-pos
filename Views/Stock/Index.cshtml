@@ -1,4 +1,4 @@
-@model IEnumerable<CityMarketPOS.Models.GRNDetail>
+@model List<CityMarketPOS.Models.ViewModels.StockGroupViewModel>
 @{
     ViewData["Title"] = "Stock Tracking";
 }
@@ -82,75 +82,137 @@
             </div>
         </div>
 
-        <!-- Stock Table -->
+        <!-- Stock Accordion -->
         <div class="card card-outline card-primary shadow-sm">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-list mr-1"></i> Stock List
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-boxes mr-2"></i> Stock by Purchase Order
                 </h3>
                 <div class="card-tools">
-                    <span class="badge badge-info">@Model.Count() Items</span>
+                    <span class="badge badge-light">@Model.Count Purchase Orders</span>
                 </div>
             </div>
-            <div class="card-body p-0 table-responsive">
-                <table class="table table-hover table-striped align-middle">
-                    <thead class="bg-light">
-                        <tr>
-                            <th>Item Code</th>
-                            <th>Product Name</th>
-                            <th>Category</th>
-                            <th class="text-center">Received Qty</th>
-                            <th class="text-center">Stock Qty</th>
-                            <th class="text-center">Current Stock</th>
-                            <th class="text-center">Min Stock Level</th>
-                            <th>Purchase Price</th>
-                            <th>Selling Price</th>
-                            <th>Expiry Date</th>
-                            <th>GRN Number</th>
-                            <th class="text-center">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model)
+            <div class="card-body p-3">
+                <div id="accordion">
+                    @if (Model != null && Model.Count > 0)
+                    {
+                        int poIndex = 0;
+                        @foreach (var poGroup in Model)
                         {
-                            <tr class="@(item.CurrentStockQuantity <= item.Product.MinStockLevel ? "table-warning" : "")">
-                                <td><span class="badge badge-secondary">@item.ItemCode</span></td>
-                                <td><strong>@item.Product.Name</strong></td>
-                                <td>@item.Product.Category?.Name</td>
-                                <td class="text-center">@item.ReceivedQuantity</td>
-                                <td class="text-center">@item.StockQuantity</td>
-                                <td class="text-center">
-                                    <span class="badge @(item.CurrentStockQuantity <= item.Product.MinStockLevel ? "badge-danger" : "badge-success")">
-                                        @item.CurrentStockQuantity
-                                    </span>
-                                </td>
-                                <td class="text-center">@item.Product.MinStockLevel</td>
-                                <td>@item.PurchasePrice.ToString("F2")</td>
-                                <td>@item.SellingPrice.ToString("F2")</td>
-                                <td>
-                                    @if (item.ExpiryDate.HasValue)
-                                    {
-                                        var daysUntilExpiry = (item.ExpiryDate.Value - DateTime.Now).Days;
-                                        <span class="badge @(daysUntilExpiry <= 30 ? "badge-warning" : "badge-success")">
-                                            @item.ExpiryDate.Value.ToString("dd MMM yyyy")
-                                        </span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">N/A</span>
-                                    }
-                                </td>
-                                <td><span class="badge badge-info">@item.GRN.GRNNumber</span></td>
-                                <td class="text-center">
-                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary shadow-sm">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                </td>
-                            </tr>
+                            poIndex++;
+                            <div class="card mb-3 border-0 shadow-sm">
+                                <div class="card-header bg-light py-2">
+                                    <h5 class="mb-0">
+                                        <button class="btn btn-link w-100 text-left text-decoration-none p-2" data-toggle="collapse" data-target="#collapse-@poIndex">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="mr-3">
+                                                        <span class="badge badge-primary px-3 py-2 font-weight-bold">@poGroup.PONumber</span>
+                                                    </div>
+                                                    <div>
+                                                        <div class="font-weight-bold text-dark">@poGroup.Supplier</div>
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-calendar-alt mr-1"></i> @poGroup.OrderDate.ToString("dd MMM yyyy")
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="badge badge-info mr-2">@poGroup.Details.Count Items</span>
+                                                    <i class="fas fa-chevron-down text-muted"></i>
+                                                </div>
+                                            </div>
+                                        </button>
+                                    </h5>
+                                </div>
+                                <div id="collapse-@poIndex" class="collapse @(poIndex == 1 ? "show" : "")" data-parent="#accordion">
+                                    <div class="card-body p-0">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover table-striped align-middle mb-0">
+                                                <thead class="bg-light">
+                                                    <tr>
+                                                        <th class="border-top-0">Item Code</th>
+                                                        <th class="border-top-0">Product Name</th>
+                                                        <th class="border-top-0">Category</th>
+                                                        <th class="border-top-0 text-center">Received</th>
+                                                        <th class="border-top-0 text-center">Stock Qty</th>
+                                                        <th class="border-top-0 text-center">Current Stock</th>
+                                                        <th class="border-top-0 text-center">Min Level</th>
+                                                        <th class="border-top-0">Purchase Price</th>
+                                                        <th class="border-top-0">Selling Price</th>
+                                                        <th class="border-top-0">Expiry Date</th>
+                                                        <th class="border-top-0">GRN Number</th>
+                                                        <th class="border-top-0 text-center">Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var item in poGroup.Details)
+                                                    {
+                                                        if (item != null && item.Product != null)
+                                                        {
+                                                            <tr class="@(item.Product.MinStockLevel > 0 && item.CurrentStockQuantity <= item.Product.MinStockLevel ? "table-warning bg-warning-light" : "")">
+                                                                <td><span class="badge badge-secondary">@item.ItemCode</span></td>
+                                                                <td>
+                                                                    <strong>@item.Product.Name</strong>
+                                                                </td>
+                                                                <td><span class="badge badge-light text-muted">@item.Product.Category?.Name</span></td>
+                                                                <td class="text-center font-weight-bold">@item.ReceivedQuantity</td>
+                                                                <td class="text-center">@item.StockQuantity</td>
+                                                                <td class="text-center">
+                                                                    <span class="badge @(item.Product.MinStockLevel > 0 && item.CurrentStockQuantity <= item.Product.MinStockLevel ? "badge-danger" : "badge-success") px-3 py-2">
+                                                                        @item.CurrentStockQuantity
+                                                                    </span>
+                                                                </td>
+                                                                <td class="text-center text-muted">@(item.Product.MinStockLevel > 0 ? item.Product.MinStockLevel.ToString() : "N/A")</td>
+                                                                <td class="text-success font-weight-bold">@(item.PurchasePrice > 0 ? item.PurchasePrice.ToString("F2") : "N/A")</td>
+                                                                <td class="text-primary font-weight-bold">@(item.SellingPrice > 0 ? item.SellingPrice.ToString("F2") : "N/A")</td>
+                                                                <td>
+                                                                    @if (item.ExpiryDate.HasValue)
+                                                                    {
+                                                                        var daysUntilExpiry = (item.ExpiryDate.Value - DateTime.Now).Days;
+                                                                        <span class="badge @(daysUntilExpiry <= 30 ? "badge-warning" : "badge-success")">
+                                                                            @item.ExpiryDate.Value.ToString("dd MMM yyyy")
+                                                                        </span>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span class="text-muted small">N/A</span>
+                                                                    }
+                                                                </td>
+                                                                <td><span class="badge badge-info">@item.GRN?.GRNNumber</span></td>
+                                                                <td class="text-center">
+                                                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-primary shadow-sm">
+                                                                        <i class="fas fa-eye"></i>
+                                                                    </a>
+                                                                </td>
+                                                            </tr>
+                                                        }
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         }
-                    </tbody>
-                </table>
+                    }
+                    else
+                    {
+                        <div class="card-body text-center py-5">
+                            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No stock records found.</p>
+                        </div>
+                    }
+                </div>
             </div>
         </div>
     </div>
 </section>
+
+@section Scripts {
+    <script>
+        // Ensure only one accordion item is open at a time
+        $('.collapse').on('show.bs.collapse', function () {
+            $(this).closest('#accordion').find('.collapse.show').not(this).collapse('hide');
+        });
+    </script>
+}
