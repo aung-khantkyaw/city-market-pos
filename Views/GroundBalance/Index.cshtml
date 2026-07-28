@@ -187,23 +187,28 @@
 @section Scripts {
     <script>
         $(function () {
+            // Only initialize DataTables if there's data
+            @if (Model != null && Model.Any())
+            {
+                <text>
             $('#gbTable').DataTable({
-                "paging": true,
-                "lengthChange": true,
-                "searching": true,
-                "ordering": true,
-                "info": true,
-                "autoWidth": false,
-                "responsive": true,
-                "pageLength": 10,
-                "lengthMenu": [5, 10, 25, 50, 100],
-                "language": {
-                    "paginate": {
-                        "previous": "<i class='fas fa-chevron-left'></i>",
-                        "next": "<i class='fas fa-chevron-right'></i>"
+                'paging': true,
+                'lengthChange': true,
+                'searching': true,
+                'ordering': true,
+                'info': true,
+                'autoWidth': false,
+                'pageLength': 10,
+                'lengthMenu': [5, 10, 25, 50, 100],
+                'language': {
+                    'paginate': {
+                        'previous': '<i class="fas fa-chevron-left"></i>',
+                        'next': '<i class="fas fa-chevron-right"></i>'
                     }
                 }
             });
+                </text>
+            }
 
             // Preserve selected values after postback
             @if (Context.Request.Query["gbDate"].Count > 0)

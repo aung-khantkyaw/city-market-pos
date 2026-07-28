@@ -53,48 +53,87 @@
                     </div>
 
                     <hr />
-                    <h5 class="mb-3">Item Details</h5>
-                    
+                    <h5 class="mb-3">
+                        <i class="fas fa-list-alt mr-2"></i> Item Details
+                    </h5>
+
+                    <!-- Filter Section -->
+                    <div class="card bg-light mb-3 border-0">
+                        <div class="card-body py-2">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <div class="form-group mb-0">
+                                        <label for="filterSupplier" class="small font-weight-bold mb-1">
+                                            <i class="fas fa-truck mr-1 text-primary"></i> Supplier
+                                        </label>
+                                        <select id="filterSupplier" class="form-control form-control-sm">
+                                            <option value="">All Suppliers</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group mb-0">
+                                        <label for="filterCategory" class="small font-weight-bold mb-1">
+                                            <i class="fas fa-folder mr-1 text-primary"></i> Category
+                                        </label>
+                                        <select id="filterCategory" class="form-control form-control-sm">
+                                            <option value="">All Categories</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-0">
+                                        <label class="small text-muted mb-1">
+                                            <i class="fas fa-info-circle"></i> <span id="itemCount">0</span> items available
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="itemRows">
                         @if (Model.GroundBalanceDetails != null && Model.GroundBalanceDetails.Any())
                         {
                             @foreach (var detail in Model.GroundBalanceDetails)
                             {
-                                <div class="item-row row mb-2">
+                                <div class="item-row row mb-3 align-items-end">
                                     <div class="col-md-3">
-                                        <label>Item Code</label>
-                                        <select name="ItemCode[]" class="form-control item-code-select" required onchange="loadInventoryQty(this)">
-                                            <option value="">Select Item Code</option>
-                                            @if (ViewBag.ItemCodeList != null)
-                                            {
-                                                @foreach (var item in ViewBag.ItemCodeList as SelectList)
-                                                {
-                                                    <option value="@item.Value" selected="@(item.Value == detail.ItemCode)">@item.Text</option>
-                                                }
-                                            }
-                                        </select>
+                                        <label class="small font-weight-bold text-primary mb-1">
+                                            <i class="fas fa-barcode mr-1"></i> Item Code
+                                        </label>
+                                        <input type="text" class="form-control bg-light" value="@detail.ItemCode" readonly />
+                                        <input type="hidden" name="ItemCode[]" value="@detail.ItemCode" />
                                         <input type="hidden" name="DetailId[]" value="@detail.Id" />
                                     </div>
                                     <div class="col-md-2">
-                                        <label>Actual Qty</label>
-                                        <input type="number" name="ActualQty[]" class="form-control actual-qty" step="0.01" min="0" value="@detail.ActualQty" onchange="calculateDifferentQty(this)" />
+                                        <label class="small font-weight-bold text-success mb-1">
+                                            <i class="fas fa-check-circle mr-1"></i> Actual Qty
+                                        </label>
+                                        <input type="number" name="ActualQty[]" class="form-control actual-qty bg-white" step="0.01" min="0" value="@detail.ActualQty" onchange="calculateDifferentQty(this)" />
                                     </div>
                                     <div class="col-md-2">
-                                        <label>Inventory Qty</label>
-                                        <input type="number" name="InventoryQty[]" class="form-control inventory-qty" step="0.01" min="0" value="@detail.InventoryQty" readonly />
+                                        <label class="small font-weight-bold text-info mb-1">
+                                            <i class="fas fa-warehouse mr-1"></i> Inventory Qty
+                                        </label>
+                                        <input type="number" name="InventoryQty[]" class="form-control inventory-qty bg-light" step="0.01" min="0" value="@detail.InventoryQty" readonly />
                                     </div>
                                     <div class="col-md-2">
-                                        <label>Different Qty</label>
-                                        <input type="number" name="DifferentQty[]" class="form-control different-qty" step="0.01" value="@detail.DifferentQty" readonly />
+                                        <label class="small font-weight-bold text-warning mb-1">
+                                            <i class="fas fa-balance-scale mr-1"></i> Different Qty
+                                        </label>
+                                        <input type="number" name="DifferentQty[]" class="form-control different-qty bg-light font-weight-bold" step="0.01" value="@detail.DifferentQty" readonly />
                                     </div>
                                     <div class="col-md-2">
-                                        <label>Remark</label>
+                                        <label class="small font-weight-bold text-muted mb-1">
+                                            <i class="fas fa-comment mr-1"></i> Remark
+                                        </label>
                                         <input type="text" name="ItemRemarks[]" class="form-control" placeholder="Item remarks" value="@detail.Remark" />
                                     </div>
                                     <div class="col-md-1">
-                                        <label>&nbsp;</label>
-                                        <button type="button" class="btn btn-danger btn-sm remove-row" onclick="removeRow(this)">
-                                            <i class="fas fa-times"></i>
+                                        <label class="small text-muted mb-1">&nbsp;</label>
+                                        <button type="button" class="btn btn-outline-danger btn-sm w-100 remove-row" onclick="removeRow(this)">
+                                            <i class="fas fa-trash-alt"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -102,40 +141,43 @@
                         }
                         else
                         {
-                            <div class="item-row row mb-2">
+                            <div class="item-row row mb-3 align-items-end">
                                 <div class="col-md-3">
-                                    <label>Item Code</label>
+                                    <label class="small font-weight-bold text-primary mb-1">
+                                        <i class="fas fa-barcode mr-1"></i> Item Code
+                                    </label>
                                     <select name="ItemCode[]" class="form-control item-code-select" required onchange="loadInventoryQty(this)">
                                         <option value="">Select Item Code</option>
-                                        @if (ViewBag.ItemCodeList != null)
-                                        {
-                                            @foreach (var item in ViewBag.ItemCodeList as SelectList)
-                                            {
-                                                <option value="@item.Value">@item.Text</option>
-                                            }
-                                        }
                                     </select>
                                 </div>
                                 <div class="col-md-2">
-                                    <label>Actual Qty</label>
-                                    <input type="number" name="ActualQty[]" class="form-control actual-qty" step="0.01" min="0" value="0" onchange="calculateDifferentQty(this)" />
+                                    <label class="small font-weight-bold text-success mb-1">
+                                        <i class="fas fa-check-circle mr-1"></i> Actual Qty
+                                    </label>
+                                    <input type="number" name="ActualQty[]" class="form-control actual-qty bg-white" step="0.01" min="0" value="0" onchange="calculateDifferentQty(this)" />
                                 </div>
                                 <div class="col-md-2">
-                                    <label>Inventory Qty</label>
-                                    <input type="number" name="InventoryQty[]" class="form-control inventory-qty" step="0.01" min="0" value="0" readonly />
+                                    <label class="small font-weight-bold text-info mb-1">
+                                        <i class="fas fa-warehouse mr-1"></i> Inventory Qty
+                                    </label>
+                                    <input type="number" name="InventoryQty[]" class="form-control inventory-qty bg-light" step="0.01" min="0" value="0" readonly />
                                 </div>
                                 <div class="col-md-2">
-                                    <label>Different Qty</label>
-                                    <input type="number" name="DifferentQty[]" class="form-control different-qty" step="0.01" value="0" readonly />
+                                    <label class="small font-weight-bold text-warning mb-1">
+                                        <i class="fas fa-balance-scale mr-1"></i> Different Qty
+                                    </label>
+                                    <input type="number" name="DifferentQty[]" class="form-control different-qty bg-light font-weight-bold" step="0.01" value="0" readonly />
                                 </div>
                                 <div class="col-md-2">
-                                    <label>Remark</label>
+                                    <label class="small font-weight-bold text-muted mb-1">
+                                        <i class="fas fa-comment mr-1"></i> Remark
+                                    </label>
                                     <input type="text" name="ItemRemarks[]" class="form-control" placeholder="Item remarks" />
                                 </div>
                                 <div class="col-md-1">
-                                    <label>&nbsp;</label>
-                                    <button type="button" class="btn btn-danger btn-sm remove-row" onclick="removeRow(this)">
-                                        <i class="fas fa-times"></i>
+                                    <label class="small text-muted mb-1">&nbsp;</label>
+                                    <button type="button" class="btn btn-outline-danger btn-sm w-100 remove-row" onclick="removeRow(this)">
+                                        <i class="fas fa-trash-alt"></i>
                                     </button>
                                 </div>
                             </div>
@@ -162,51 +204,166 @@
 </section>
 
 @section Scripts {
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <style>
+        .increased-dropdown-height .select2-results {
+            max-height: 400px !important;
+        }
+        .select2-container--default .select2-results > .select2-results__options {
+            max-height: 400px !important;
+        }
+    </style>
     <script>
         let rowCount = @((Model.GroundBalanceDetails?.Count ?? 0) + 1);
+
+        // Store existing item codes
+        const existingItemCodes = @Html.Raw(Json.Serialize(Model.GroundBalanceDetails?.Select(d => d.ItemCode).ToList() ?? new List<string>()));
+
+        // Load suppliers on page load
+        $(document).ready(function() {
+            loadSuppliers();
+            loadFilteredItems();
+            
+            // Initialize Select2 for item code dropdowns
+            $('.item-code-select').select2({
+                placeholder: 'Select Item Code',
+                width: '100%',
+                dropdownAutoWidth: true,
+                dropdownCssClass: 'increased-dropdown-height'
+            });
+
+            // Initialize Select2 for filter dropdowns with increased height
+            $('#filterSupplier, #filterCategory').select2({
+                width: '100%',
+                dropdownCssClass: 'increased-dropdown-height'
+            });
+            
+            // Initialize Select2 for new rows
+            $(document).on('select2:open', function() {
+                $('.select2-search__field').focus();
+            });
+        });
+
+        function loadSuppliers() {
+            $.get('@Url.Action("GetSuppliers", "GroundBalance")', function(data) {
+                const supplierSelect = $('#filterSupplier');
+                supplierSelect.empty();
+                supplierSelect.append('<option value="">All Suppliers</option>');
+                $.each(data, function(i, item) {
+                    supplierSelect.append('<option value="' + item.value + '">' + item.text + '</option>');
+                });
+            });
+        }
+
+        function loadCategories(supplierId) {
+            $.get('@Url.Action("GetCategories", "GroundBalance")', { supplierId: supplierId }, function(data) {
+                const categorySelect = $('#filterCategory');
+                categorySelect.empty();
+                categorySelect.append('<option value="">All Categories</option>');
+                $.each(data, function(i, item) {
+                    categorySelect.append('<option value="' + item.value + '">' + item.text + '</option>');
+                });
+            });
+        }
+
+        function loadFilteredItems() {
+            const supplierId = $('#filterSupplier').val() || null;
+            const categoryId = $('#filterCategory').val() || null;
+            
+            $.get('@Url.Action("GetFilteredItems", "GroundBalance")', { 
+                supplierId: supplierId, 
+                categoryId: categoryId 
+            }, function(data) {
+                // Update item count
+                $('#itemCount').text(data.length);
+                
+                $('.item-code-select').each(function() {
+                    const currentValue = $(this).val();
+                    $(this).empty();
+                    $(this).append('<option value="">Select Item Code</option>');
+                    $.each(data, function(i, item) {
+                        $(this).append('<option value="' + item.value + '">' + item.text + '</option>');
+                    }.bind(this));
+                    $(this).val(currentValue);
+                    
+                    // Trigger change to load inventory qty for existing values
+                    if (currentValue) {
+                        loadInventoryQty(this);
+                    }
+                });
+            });
+        }
+
+
+        // Cascading filter: Supplier change -> load categories
+        $('#filterSupplier').change(function() {
+            const supplierId = $(this).val();
+            loadCategories(supplierId);
+            loadFilteredItems();
+        });
+
+        // Cascading filter: Category change -> load items
+        $('#filterCategory').change(function() {
+            loadFilteredItems();
+        });
 
         function addRow() {
             rowCount++;
             const newRow = `
-                <div class="item-row row mb-2">
+                <div class="item-row row mb-3 align-items-end">
                     <div class="col-md-3">
-                        <label>Item Code</label>
+                        <label class="small font-weight-bold text-primary mb-1">
+                            <i class="fas fa-barcode mr-1"></i> Item Code
+                        </label>
                         <select name="ItemCode[]" class="form-control item-code-select" required onchange="loadInventoryQty(this)">
                             <option value="">Select Item Code</option>
-                            @if (ViewBag.ItemCodeList != null)
-                            {
-                                @foreach (var item in ViewBag.ItemCodeList as SelectList)
-                                {
-                                    <option value="@item.Value">@item.Text</option>
-                                }
-                            }
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <label>Actual Qty</label>
-                        <input type="number" name="ActualQty[]" class="form-control actual-qty" step="0.01" min="0" value="0" onchange="calculateDifferentQty(this)" />
+                        <label class="small font-weight-bold text-success mb-1">
+                            <i class="fas fa-check-circle mr-1"></i> Actual Qty
+                        </label>
+                        <input type="number" name="ActualQty[]" class="form-control actual-qty bg-white" step="0.01" min="0" value="0" onchange="calculateDifferentQty(this)" />
                     </div>
                     <div class="col-md-2">
-                        <label>Inventory Qty</label>
-                        <input type="number" name="InventoryQty[]" class="form-control inventory-qty" step="0.01" min="0" value="0" readonly />
+                        <label class="small font-weight-bold text-info mb-1">
+                            <i class="fas fa-warehouse mr-1"></i> Inventory Qty
+                        </label>
+                        <input type="number" name="InventoryQty[]" class="form-control inventory-qty bg-light" step="0.01" min="0" value="0" readonly />
                     </div>
                     <div class="col-md-2">
-                        <label>Different Qty</label>
-                        <input type="number" name="DifferentQty[]" class="form-control different-qty" step="0.01" value="0" readonly />
+                        <label class="small font-weight-bold text-warning mb-1">
+                            <i class="fas fa-balance-scale mr-1"></i> Different Qty
+                        </label>
+                        <input type="number" name="DifferentQty[]" class="form-control different-qty bg-light font-weight-bold" step="0.01" value="0" readonly />
                     </div>
                     <div class="col-md-2">
-                        <label>Remark</label>
+                        <label class="small font-weight-bold text-muted mb-1">
+                            <i class="fas fa-comment mr-1"></i> Remark
+                        </label>
                         <input type="text" name="ItemRemarks[]" class="form-control" placeholder="Item remarks" />
                     </div>
                     <div class="col-md-1">
-                        <label>&nbsp;</label>
-                        <button type="button" class="btn btn-danger btn-sm remove-row" onclick="removeRow(this)">
-                            <i class="fas fa-times"></i>
+                        <label class="small text-muted mb-1">&nbsp;</label>
+                        <button type="button" class="btn btn-outline-danger btn-sm w-100 remove-row" onclick="removeRow(this)">
+                            <i class="fas fa-trash-alt"></i>
                         </button>
                     </div>
                 </div>
             `;
             $('#itemRows').append(newRow);
+            
+            // Initialize Select2 for the new dropdown
+            $('.item-code-select:last').select2({
+                placeholder: 'Select Item Code',
+                width: '100%',
+                dropdownAutoWidth: true,
+                dropdownCssClass: 'increased-dropdown-height'
+            });
+            
+            // Load filtered items for the new row
+            loadFilteredItems();
         }
 
         function removeRow(button) {

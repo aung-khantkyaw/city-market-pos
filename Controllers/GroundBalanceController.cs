@@ -65,7 +65,8 @@ namespace CityMarketPOS.Controllers
                 Status = "Pending"
             };
 
-            ViewBag.ItemCodeList = new SelectList(_context.GRNDetails.Include(g => g.Product).Where(g => g.CurrentStockQuantity > 0), "ItemCode", "ItemCode");
+            // Set item count for display
+            ViewBag.ItemCount = _context.GRNDetails.Count(g => g.CurrentStockQuantity > 0);
 
             return View(model);
         }
@@ -77,12 +78,13 @@ namespace CityMarketPOS.Controllers
             if (ItemCode == null || ItemCode.Length == 0)
             {
                 ModelState.AddModelError("", "Please add at least one item.");
-                ViewBag.ItemCodeList = new SelectList(_context.GRNDetails.Include(g => g.Product).Where(g => g.CurrentStockQuantity > 0), "ItemCode", "ItemCode");
                 return View(groundBalance);
             }
 
             var user = await _userManager.GetUserAsync(User);
             groundBalance.CreatedUser = user?.Id ?? "System";
+            groundBalance.Remark = groundBalance.Remark ?? "";
+            groundBalance.UpdatedUser = "";
 
             groundBalance.GroundBalanceDetails = new List<GroundBalanceDetail>();
 
@@ -101,8 +103,9 @@ namespace CityMarketPOS.Controllers
                         ActualQty = ActualQty[i],
                         InventoryQty = inventoryQty,
                         DifferentQty = ActualQty[i] - inventoryQty,
-                        Remark = ItemRemarks[i],
-                        CreatedUser = user?.Id ?? "System"
+                        Remark = ItemRemarks[i] ?? "",
+                        CreatedUser = user?.Id ?? "System",
+                        UpdatedUser = ""
                     });
                 }
             }
@@ -175,7 +178,7 @@ namespace CityMarketPOS.Controllers
                                 ActualQty = ActualQty[i],
                                 InventoryQty = inventoryQty,
                                 DifferentQty = ActualQty[i] - inventoryQty,
-                                Remark = ItemRemarks[i],
+                                Remark = ItemRemarks[i] ?? "",
                                 UpdatedUser = user?.Id ?? "System",
                                 UpdatedDate = DateTime.Now
                             });
@@ -228,6 +231,73 @@ namespace CityMarketPOS.Controllers
             var grnDetail = _context.GRNDetails.FirstOrDefault(g => g.ItemCode == itemCode);
             float inventoryQty = grnDetail?.CurrentStockQuantity ?? 0;
             return Json(new { inventoryQty = inventoryQty });
+        }
+
+        [HttpGet]
+        public IActionResult GetSuppliers()
+        {
+            var suppliers = _context.Suppliers
+                .OrderBy(s => s.Name)
+                .Select(s => new { value = s.Id, text = s.Name })
+                .ToList();
+            return Json(suppliers);
+        }
+
+        [HttpGet]
+        public IActionResult GetCategories(int? supplierId)
+        {
+            var query = _context.Categories.AsQueryable();
+            
+            if (supplierId.HasValue)
+            {
+                // Get categories that have products from the selected supplier
+                var supplier = _context.Suppliers.Include(s => s.Products).FirstOrDefault(s => s.Id == supplierId);
+                if (supplier != null)
+                {
+                    var categoryIds = supplier.Products.Select(p => p.CategoryId).Distinct().ToList();
+                    query = query.Where(c => categoryIds.Contains(c.Id));
+                }
+            }
+            
+            var categories = query
+                .OrderBy(c => c.Name)
+                .Select(c => new { value = c.Id, text = c.Name })
+                .ToList();
+            return Json(categories);
+        }
+
+        [HttpGet]
+        public IActionResult GetFilteredItems(int? supplierId, int? categoryId)
+        {
+            var query = _context.GRNDetails
+                .Include(g => g.Product)
+                .Where(g => g.CurrentStockQuantity > 0)
+                .AsQueryable();
+            
+            if (supplierId.HasValue)
+            {
+                // Filter by supplier using the many-to-many relationship
+                var supplier = _context.Suppliers.Include(s => s.Products).FirstOrDefault(s => s.Id == supplierId);
+                if (supplier != null)
+                {
+                    var productIds = supplier.Products.Select(p => p.Id).ToList();
+                    query = query.Where(g => productIds.Contains(g.ProductId));
+                }
+            }
+            
+            if (categoryId.HasValue)
+            {
+                query = query.Where(g => g.Product.CategoryId == categoryId);
+            }
+            
+            var items = query
+                .OrderBy(g => g.ItemCode)
+                .Select(g => new { 
+                    value = g.ItemCode, 
+                    text = g.ItemCode + " - " + (g.Product != null ? g.Product.Name : "Unknown") 
+                })
+                .ToList();
+            return Json(items);
         }
     }
 }
