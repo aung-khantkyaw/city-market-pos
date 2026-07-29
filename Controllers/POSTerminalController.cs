@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace CityMarketPOS.Controllers
 {
-    [Authorize(Roles = "Cashier")]
+    [Authorize(Roles = "Cashier,Manager")]
     public class POSTerminalController : Controller
     {
         private readonly ApplicationDbContext _context;
