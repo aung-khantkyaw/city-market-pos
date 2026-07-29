@@ -42,6 +42,7 @@
                                     <option value="Completed">Completed</option>
                                     <option value="Cancelled">Cancelled</option>
                                 </select>
+                                <span asp-validation-for="Status" class="text-danger"></span>
                             </div>
                         </div>
                         <div class="col-md-3">
@@ -190,7 +191,7 @@
 
                     <hr />
                     <div class="form-group">
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
                             <i class="fas fa-save"></i> Update Ground Balance
                         </button>
                         <a asp-action="Index" class="btn btn-secondary">

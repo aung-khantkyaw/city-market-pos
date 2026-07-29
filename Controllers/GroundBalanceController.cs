@@ -139,19 +139,62 @@ namespace CityMarketPOS.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(string batchNo, GroundBalance groundBalance, int[] DetailId, string[] ItemCode, float[] ActualQty, float[] InventoryQty, string[] ItemRemarks)
         {
-            if (batchNo != groundBalance.BatchNo) return NotFound();
+            // 1. Method စခေါ်တဲ့အချိန်မှာ Parameter တွေ မှန်မမှန် စစ်ဆေးရန်
+            Console.WriteLine($"\n[Debug] === Edit POST Started for BatchNo: {batchNo} ===");
+            Console.WriteLine($"[Debug] Received groundBalance.Status: {groundBalance.Status}");
+            Console.WriteLine($"[Debug] Received groundBalance.GBDate: {groundBalance.GBDate}");
+
+            if (batchNo != groundBalance.BatchNo)
+            {
+                Console.WriteLine($"[Debug] Error: URL batchNo ({batchNo}) and Model batchNo ({groundBalance.BatchNo}) mismatch!");
+                return NotFound();
+            }
+
+            ModelState.Remove(nameof(GroundBalance.CreatedUser));
+            ModelState.Remove(nameof(GroundBalance.UpdatedUser));
+            ModelState.Remove(nameof(GroundBalance.GroundBalanceDetails));
+
+            ModelState.Remove(nameof(GroundBalance.Remark));
+
+            if (ItemCode == null || ItemCode.Length == 0 || !ItemCode.Any(itemCode => !string.IsNullOrWhiteSpace(itemCode)))
+            {
+                Console.WriteLine("[Debug] Warning: No valid items found in ItemCode array.");
+                ModelState.AddModelError("", "Please add at least one item.");
+            }
+
+            // 2. ModelState.IsValid အခြေအနေကို စစ်ဆေးရန်
+            Console.WriteLine($"[Debug] ModelState.IsValid: {ModelState.IsValid}");
+            if (!ModelState.IsValid)
+            {
+                // 3. ဘာကြောင့် Invalid ဖြစ်နေလဲဆိုတဲ့ Error တွေကို ဖော်ပြပေးရန်
+                foreach (var modelState in ModelState.Values)
+                {
+                    foreach (var error in modelState.Errors)
+                    {
+                        Console.WriteLine($"[Debug] ModelState Error: {error.ErrorMessage}");
+                    }
+                }
+            }
 
             if (ModelState.IsValid)
             {
                 try
                 {
+                    Console.WriteLine("[Debug] Fetching existing record from database...");
                     var existingGb = await _context.GroundBalances
                         .Include(g => g.GroundBalanceDetails)
                         .FirstOrDefaultAsync(g => g.BatchNo == batchNo);
 
-                    if (existingGb == null) return NotFound();
+                    if (existingGb == null)
+                    {
+                        Console.WriteLine($"[Debug] Error: Record {batchNo} not found in DB.");
+                        return NotFound();
+                    }
 
-                    existingGb.Remark = groundBalance.Remark;
+                    // 4. Update မလုပ်ခင် Old Value နဲ့ New Value ကို နှိုင်းယှဉ်ပြရန်
+                    Console.WriteLine($"[Debug] Updating Status... Old: {existingGb.Status} -> New: {groundBalance.Status}");
+
+                    existingGb.Remark = groundBalance.Remark ?? "";
                     existingGb.GBDate = groundBalance.GBDate;
                     existingGb.Status = groundBalance.Status;
                     existingGb.UpdatedDate = DateTime.Now;
@@ -159,47 +202,108 @@ namespace CityMarketPOS.Controllers
                     var user = await _userManager.GetUserAsync(User);
                     existingGb.UpdatedUser = user?.Id ?? "System";
 
-                    // Remove existing details
+                    Console.WriteLine($"[Debug] Removing {existingGb.GroundBalanceDetails.Count} old details.");
                     _context.GroundBalanceDetails.RemoveRange(existingGb.GroundBalanceDetails);
+
+                    // GroundBalanceDetails null ဖြစ်နေပါက အသစ် ဆောက်ပေးရန်
+                    if (existingGb.GroundBalanceDetails == null)
+                    {
+                        existingGb.GroundBalanceDetails = new List<GroundBalanceDetail>();
+                    }
+
+                    Console.WriteLine($"[Debug] Processing {ItemCode.Length} items from form...");
 
                     // Add new details
                     for (int i = 0; i < ItemCode.Length; i++)
                     {
                         if (!string.IsNullOrEmpty(ItemCode[i]))
                         {
-                            // Get inventory quantity from GRNDetails
                             var grnDetail = await _context.GRNDetails.FirstOrDefaultAsync(g => g.ItemCode == ItemCode[i]);
                             float inventoryQty = grnDetail?.CurrentStockQuantity ?? 0;
+
+                            // Safe extraction: Array Null သို့မဟုတ် Index ရောက်မရောက် စစ်ဆေးခြင်း
+                            float actual = (ActualQty != null && i < ActualQty.Length) ? ActualQty[i] : 0;
+                            string remark = (ItemRemarks != null && i < ItemRemarks.Length) ? (ItemRemarks[i] ?? "") : "";
+
+                            Console.WriteLine($"[Debug] Adding Item: {ItemCode[i]} | Actual: {actual} | Inv: {inventoryQty}");
 
                             existingGb.GroundBalanceDetails.Add(new GroundBalanceDetail
                             {
                                 BatchNo = groundBalance.BatchNo,
                                 ItemCode = ItemCode[i],
-                                ActualQty = ActualQty[i],
+                                ActualQty = actual,
                                 InventoryQty = inventoryQty,
-                                DifferentQty = ActualQty[i] - inventoryQty,
-                                Remark = ItemRemarks[i] ?? "",
+                                DifferentQty = actual - inventoryQty,
+                                Remark = remark,
+                                CreatedUser = user?.Id ?? "System",
                                 UpdatedUser = user?.Id ?? "System",
                                 UpdatedDate = DateTime.Now
                             });
                         }
                     }
 
+                    Console.WriteLine("[Debug] Saving changes to database (SaveChangesAsync)...");
                     await _context.SaveChangesAsync();
+                    Console.WriteLine("[Debug] Successfully saved to database.");
 
                     await _auditLogRepo.LogAsync("GroundBalance", groundBalance.BatchNo, "Edit", user?.Id ?? "System", user?.UserName ?? "System", $"Updated Ground Balance: {groundBalance.BatchNo}");
 
                     TempData["Success"] = "Ground Balance updated successfully!";
                     return RedirectToAction(nameof(Index));
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    // 6. Database သို့ သိမ်းရာတွင် Exception တက်ပါက အသေးစိတ်ဖော်ပြပေးရန်
+                    Console.WriteLine("\n[Debug Error] Exception occurred while updating!");
+                    Console.WriteLine($"[Debug Error Message]: {ex.Message}");
+                    if (ex.InnerException != null)
+                    {
+                        Console.WriteLine($"[Debug Inner Exception]: {ex.InnerException.Message}");
+                    }
+                    Console.WriteLine($"[Debug StackTrace]: {ex.StackTrace}");
+
                     ModelState.AddModelError("", "An error occurred while updating the ground balance.");
                 }
             }
 
+            Console.WriteLine("[Debug] Returning to View (Validation failed or Exception caught).");
+            groundBalance.GroundBalanceDetails = BuildPostedDetails(groundBalance.BatchNo, DetailId, ItemCode, ActualQty, InventoryQty, ItemRemarks);
             ViewBag.ItemCodeList = new SelectList(_context.GRNDetails.Include(g => g.Product).Where(g => g.CurrentStockQuantity > 0), "ItemCode", "ItemCode");
             return View(groundBalance);
+        }
+
+        private static List<GroundBalanceDetail> BuildPostedDetails(string batchNo, int[] detailIds, string[] itemCodes, float[] actualQty, float[] inventoryQty, string[] itemRemarks)
+        {
+            var details = new List<GroundBalanceDetail>();
+
+            if (itemCodes == null)
+            {
+                return details;
+            }
+
+            for (int i = 0; i < itemCodes.Length; i++)
+            {
+                if (string.IsNullOrWhiteSpace(itemCodes[i]))
+                {
+                    continue;
+                }
+
+                var actual = i < actualQty.Length ? actualQty[i] : 0;
+                var inventory = i < inventoryQty.Length ? inventoryQty[i] : 0;
+
+                details.Add(new GroundBalanceDetail
+                {
+                    Id = i < detailIds.Length ? detailIds[i] : 0,
+                    BatchNo = batchNo,
+                    ItemCode = itemCodes[i],
+                    ActualQty = actual,
+                    InventoryQty = inventory,
+                    DifferentQty = actual - inventory,
+                    Remark = i < itemRemarks.Length ? itemRemarks[i] ?? "" : ""
+                });
+            }
+
+            return details;
         }
 
         public async Task<IActionResult> Delete(string batchNo)

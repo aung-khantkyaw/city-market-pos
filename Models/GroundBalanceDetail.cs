@@ -26,7 +26,7 @@ namespace CityMarketPOS.Models
         public float DifferentQty { get; set; } // ကွာဟချက် (ActualQty - InventoryQty)
 
         [StringLength(100)]
-        public string Remark { get; set; }
+        public string? Remark { get; set; }
 
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 

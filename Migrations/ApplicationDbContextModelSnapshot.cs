@@ -336,7 +336,6 @@ namespace CityMarketPOS.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Remark")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -394,7 +393,6 @@ namespace CityMarketPOS.Migrations
                         .HasColumnType("nvarchar(25)");
 
                     b.Property<string>("Remark")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -962,7 +960,7 @@ namespace CityMarketPOS.Migrations
             modelBuilder.Entity("CityMarketPOS.Models.PurchaseOrder", b =>
                 {
                     b.HasOne("CityMarketPOS.Models.Supplier", "Supplier")
-                        .WithMany()
+                        .WithMany("PurchaseOrders")
                         .HasForeignKey("SupplierId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1121,6 +1119,11 @@ namespace CityMarketPOS.Migrations
             modelBuilder.Entity("CityMarketPOS.Models.Sale", b =>
                 {
                     b.Navigation("Details");
+                });
+
+            modelBuilder.Entity("CityMarketPOS.Models.Supplier", b =>
+                {
+                    b.Navigation("PurchaseOrders");
                 });
 #pragma warning restore 612, 618
         }

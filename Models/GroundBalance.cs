@@ -18,7 +18,7 @@ namespace CityMarketPOS.Models
         public string Status { get; set; } // Pending, Completed, Cancelled
 
         [StringLength(100)]
-        public string Remark { get; set; }
+        public string? Remark { get; set; }
 
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
