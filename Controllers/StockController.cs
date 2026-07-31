@@ -56,8 +56,12 @@ namespace CityMarketPOS.Controllers
             // Filter by expiring soon (within 30 days)
             if (expiringSoon)
             {
-                var thirtyDaysFromNow = DateTime.Now.AddDays(30);
-                query = query.Where(g => g.ExpiryDate.HasValue && g.ExpiryDate <= thirtyDaysFromNow);
+                var today = DateTime.Today;
+                var thirtyDaysFromNow = today.AddDays(30);
+
+                query = query.Where(g => g.ExpiryDate.HasValue &&
+                                         g.ExpiryDate.Value.Date >= today &&
+                                         g.ExpiryDate.Value.Date <= thirtyDaysFromNow);
             }
 
             var stockDetails = await query.ToListAsync();

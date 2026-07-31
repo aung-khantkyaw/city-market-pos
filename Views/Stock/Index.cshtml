@@ -149,7 +149,26 @@
                                                     {
                                                         if (item != null && item.Product != null)
                                                         {
-                                                            <tr class="@(item.Product.MinStockLevel > 0 && item.CurrentStockQuantity <= item.Product.MinStockLevel ? "table-warning bg-warning-light" : "")">
+                                                            int? daysUntilExpiry = null;
+                                                            bool isExpired = false;
+
+                                                            if (item.ExpiryDate.HasValue)
+                                                            {
+                                                                daysUntilExpiry = (item.ExpiryDate.Value.Date - DateTime.Now.Date).Days;
+                                                                isExpired = daysUntilExpiry < 0;
+                                                            }
+
+                                                            string trClass = "";
+                                                            if (isExpired)
+                                                            {
+                                                                trClass = "table-danger"; 
+                                                            }
+                                                            else if (item.Product.MinStockLevel > 0 && item.CurrentStockQuantity <= item.Product.MinStockLevel)
+                                                            {
+                                                                trClass = "table-warning bg-warning-light"; 
+                                                            }
+
+                                                            <tr class="@trClass">
                                                                 <td><span class="badge badge-secondary">@item.ItemCode</span></td>
                                                                 <td>
                                                                     <strong>@item.Product.Name</strong>
@@ -165,11 +184,22 @@
                                                                 <td class="text-center text-muted">@(item.Product.MinStockLevel > 0 ? item.Product.MinStockLevel.ToString() : "N/A")</td>
                                                                 <td class="text-success font-weight-bold">@(item.PurchasePrice > 0 ? item.PurchasePrice.ToString("F2") : "N/A")</td>
                                                                 <td class="text-primary font-weight-bold">@(item.SellingPrice > 0 ? item.SellingPrice.ToString("F2") : "N/A")</td>
+
+                                                                <!-- ပြင်ဆင်ထားသော Expire Date TD -->
                                                                 <td>
                                                                     @if (item.ExpiryDate.HasValue)
                                                                     {
-                                                                        var daysUntilExpiry = (item.ExpiryDate.Value - DateTime.Now).Days;
-                                                                        <span class="badge @(daysUntilExpiry <= 30 ? "badge-warning" : "badge-success")">
+                                                                        string badgeClass = "badge-success";
+                                                                        if (daysUntilExpiry <= 7)
+                                                                        {
+                                                                            badgeClass = "badge-danger";
+                                                                        }
+                                                                        else if (daysUntilExpiry <= 30)
+                                                                        {
+                                                                            badgeClass = "badge-warning";
+                                                                        }
+
+                                                                        <span class="badge @badgeClass">
                                                                             @item.ExpiryDate.Value.ToString("dd MMM yyyy")
                                                                         </span>
                                                                     }
@@ -178,6 +208,7 @@
                                                                         <span class="text-muted small">N/A</span>
                                                                     }
                                                                 </td>
+
                                                                 <td><span class="badge badge-info">@item.GRN?.GRNNumber</span></td>
                                                                 <td class="text-center">
                                                                     <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-primary shadow-sm">
