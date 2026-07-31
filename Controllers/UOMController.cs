@@ -3,6 +3,7 @@ using CityMarketPOS.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CityMarketPOS.Controllers
 {
@@ -12,12 +13,14 @@ namespace CityMarketPOS.Controllers
         private readonly IUOMRepository _uomRepo;
         private readonly IAuditLogRepository _auditLogRepo;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ApplicationDbContext _context;
 
-        public UOMController(IUOMRepository uomRepo, IAuditLogRepository auditLogRepo, UserManager<ApplicationUser> userManager)
+        public UOMController(IUOMRepository uomRepo, IAuditLogRepository auditLogRepo, UserManager<ApplicationUser> userManager, ApplicationDbContext context)
         {
             _uomRepo = uomRepo;
             _auditLogRepo = auditLogRepo;
             _userManager = userManager;
+            _context = context;
         }
 
         public async Task<IActionResult> Index()
@@ -53,6 +56,7 @@ namespace CityMarketPOS.Controllers
             if (ModelState.IsValid)
             {
                 var oldUOM = await _uomRepo.GetByIdAsync(id);
+                _context.Entry(oldUOM).State = EntityState.Detached;
                 _uomRepo.Update(uom);
                 await _uomRepo.SaveChangesAsync();
 

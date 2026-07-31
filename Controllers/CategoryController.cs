@@ -3,6 +3,7 @@ using CityMarketPOS.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 
 namespace CityMarketPOS.Controllers
@@ -13,12 +14,14 @@ namespace CityMarketPOS.Controllers
         private readonly ICategoryRepository _categoryRepo;
         private readonly IAuditLogRepository _auditLogRepo;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ApplicationDbContext _context;
 
-        public CategoryController(ICategoryRepository categoryRepo, IAuditLogRepository auditLogRepo, UserManager<ApplicationUser> userManager)
+        public CategoryController(ICategoryRepository categoryRepo, IAuditLogRepository auditLogRepo, UserManager<ApplicationUser> userManager, ApplicationDbContext context)
         {
             _categoryRepo = categoryRepo;
             _auditLogRepo = auditLogRepo;
             _userManager = userManager;
+            _context = context;
         }
 
         public async Task<IActionResult> Index()
@@ -67,6 +70,7 @@ namespace CityMarketPOS.Controllers
                 }
 
                 var oldCategory = await _categoryRepo.GetByIdAsync(id);
+                _context.Entry(oldCategory).State = EntityState.Detached;
                 _categoryRepo.Update(category);
                 await _categoryRepo.SaveChangesAsync();
 
