@@ -49,12 +49,49 @@ namespace CityMarketPOS.Controllers
             ModelState.Remove("Products");
             ModelState.Remove("Phone");
 
+            var submittedPhones = phoneNumbers?
+                .Where(phone => !string.IsNullOrWhiteSpace(phone))
+                .Select(phone => phone.Trim())
+                .ToList() ?? new List<string>();
+            var submittedEmail = supplier.Email?.Trim();
+
+            if (submittedPhones.Any() || !string.IsNullOrWhiteSpace(submittedEmail))
+            {
+                var existingSuppliers = await _context.Suppliers
+                    .AsNoTracking()
+                    .Select(existing => new { existing.Phone, existing.Email })
+                    .ToListAsync();
+
+                var existingPhones = existingSuppliers
+                    .Where(existing => !string.IsNullOrWhiteSpace(existing.Phone))
+                    .SelectMany(existing => existing.Phone.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                    .Select(phone => phone.Trim());
+
+                if (submittedPhones.Intersect(existingPhones, StringComparer.OrdinalIgnoreCase).Any())
+                {
+                    ModelState.AddModelError("phoneNumbers", "This phone number is already registered to another supplier.");
+                }
+
+                var existingEmails = existingSuppliers
+                    .Where(existing => !string.IsNullOrWhiteSpace(existing.Email))
+                    .SelectMany(existing => existing.Email.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                    .Select(email => email.Trim());
+
+                if (!string.IsNullOrWhiteSpace(submittedEmail) &&
+                    existingEmails.Contains(submittedEmail, StringComparer.OrdinalIgnoreCase))
+                {
+                    ModelState.AddModelError("Email", "This email address is already registered to another supplier.");
+                }
+            }
+
             if (ModelState.IsValid)
             {
-                if (phoneNumbers != null && phoneNumbers.Any())
+                if (submittedPhones.Any())
                 {
-                    supplier.Phone = string.Join(", ", phoneNumbers.Where(p => !string.IsNullOrWhiteSpace(p)));
+                    supplier.Phone = string.Join(", ", submittedPhones);
                 }
+
+                supplier.Email = submittedEmail;
 
                 if (selectedProductIds != null)
                 {

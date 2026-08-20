@@ -38,7 +38,10 @@
 
             <div class="col-md-6 form-group">
                 <label asp-for="Email">Email</label>
-                <input asp-for="Email" type="email" class="form-control" />
+                <input asp-for="Email" type="email" class="form-control"
+                       placeholder="supplier@example.com"
+                       title="တရားဝင် Email လိပ်စာ ထည့်သွင်းပါ (ဥပမာ - supplier@example.com)" />
+                <span asp-validation-for="Email" class="text-danger"></span>
             </div>
             <div class="col-md-12 form-group">
                 <label asp-for="Address">Address</label>
@@ -128,4 +131,5 @@
     $(document).off('click', '.remove-phone').on('click', '.remove-phone', function() {
         $(this).closest('.phone-input-group').remove();
     });
+
 </script>
